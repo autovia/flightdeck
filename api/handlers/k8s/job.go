@@ -1,0 +1,83 @@
+// Copyright (c) Autovia GmbH
+// SPDX-License-Identifier: Apache-2.0
+
+package k8s
+
+import (
+	"context"
+	"log"
+	"net/http"
+
+	S "github.com/autovia/flightdeck/api/structs"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+)
+
+func JobHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+	url := S.GetRequestParams(r, "/api/v1/job/")
+	log.Printf("JobHandler url: %v", url)
+
+	job, err := client.BatchV1().Jobs(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	if err != nil {
+		return S.RespondError(err)
+	}
+	job.ObjectMeta.ManagedFields = nil
+
+	S.RespondYAML(w, http.StatusOK, job)
+	return nil
+}
+
+func JobPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+	url := S.GetRequestParams(r, "/api/v1/graph/job/")
+	log.Printf("JobPodListHandler url: %v", url)
+
+	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
+	jobnode := g.AddNode("job", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "job"})
+
+	podList, err := client.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return S.RespondError(err)
+	}
+	for _, pod := range podList.Items {
+		for _, podOwnerRefs := range pod.ObjectMeta.OwnerReferences {
+			if podOwnerRefs.Kind == "Job" {
+				job, err := client.BatchV1().Jobs(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+				if err != nil {
+					return S.RespondError(err)
+				}
+				if url.Resource == job.ObjectMeta.Name {
+					if !g.Includes(pod.ObjectMeta.Name) {
+						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "pod"})
+						g.AddEdge(jobnode, podnode)
+					}
+				}
+			}
+		}
+	}
+
+	return S.RespondJSON(w, http.StatusOK, g)
+}
+
+func NamespaceJobListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+	url := S.GetRequestParams(r, "/api/v1/namespace/job/")
+	log.Printf("NamespaceJobListHandler url: %v", url)
+
+	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
+
+	ns, err := client.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	if err != nil {
+		return S.RespondError(err)
+	}
+	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
+
+	jobList, err := client.BatchV1().Jobs(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return S.RespondError(err)
+	}
+	for _, job := range jobList.Items {
+		g.AddNode("job", string(job.ObjectMeta.UID), job.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "job", ParentNode: node, Extent: "parent"})
+	}
+
+	return S.RespondJSON(w, http.StatusOK, g)
+}

@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    k8s-app: flightdeck
+  name: flightdeck-dev
+  namespace: flightdeck
+spec:
+  containers:
+  - name: flightdeck-dev
+    image: autovia/flightdeck:0.0.2
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    command: ["/usr/local/flightdeck/flightdeck.linux.amd64"]
+    args:
+      - -fileserver=true
+      - -fileserverpath=/usr/local/flightdeck/dist
+      - -incluster=true
+      - -addr=0.0.0.0:3000
+    ports:
+      - containerPort: 3000
+        protocol: TCP
+  serviceAccountName: flightdeck
