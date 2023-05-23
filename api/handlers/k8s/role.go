@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func RoleHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func RoleHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/role/")
 	log.Printf("RoleHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func RoleHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Re
 	return S.RespondYAML(w, http.StatusOK, role)
 }
 
-func NamespaceRoleListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceRoleListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/role/")
 	log.Printf("NamespaceRoleListHandler url: %v", url)
 

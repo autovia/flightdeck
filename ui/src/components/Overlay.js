@@ -6,15 +6,6 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import Tabs from './Tabs';
 
-const commonTabs = ([
-  { name: 'YAML', id: "yaml" }
-])
-
-const podTabs = ([
-  { name: 'Logs', id: "logs" },
-  { name: 'YAML', id: "yaml" }
-])
-
 //export default function Overlay({ data, params, close }) {
 class Overlay extends Component {
   constructor(props) {
@@ -23,20 +14,24 @@ class Overlay extends Component {
         open: true,
         resource: null,
         references: [],
-        tabs: this.props.data.kind === "pod" ? podTabs : commonTabs,
-        currentTab: this.props.data.kind === "pod" ? podTabs[0].id : commonTabs[0].id,
+        tabs: this.initTabs(),
+        currentTab: "yaml",
         currentContainer: this.props.data.kind === "pod" && this.props.data.containers && this.props.data.containers.length > 0 ? this.props.data.containers[0] : ""
     }
   }
 
   componentDidMount() {
-    console.log("Overlay this.props", this.props);
+    this.fetchYaml();
+  }
+
+  initTabs() {
+    var tabs = [{ name: 'YAML', id: "yaml" }]
     if (this.props.data.kind === "pod") {
-      this.fetchLogs();
+      tabs.push({ name: 'Logs', id: "logs" }) 
     } else {
-      this.fetchYaml();
-      this.fetchRefs();
+      tabs.push({ name: 'Used by pods', id: "ref" }) 
     }
+    return tabs;
   }
 
   fetchYaml() {
@@ -62,18 +57,21 @@ class Overlay extends Component {
   }
 
   fetchRefs() {
-    if (this.props.data.kind === "cm") {
-      const url = '/api/v1/graph/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label;
-      fetch(url)
-      //.then(res => res.text())
-      .then(res => res.json())
-      .then(d => {
+    this.setState((state, props) => ({
+      currentTab: "ref"
+    }));
+    const url = '/api/v1/graph/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label;
+    fetch(url)
+    //.then(res => res.text())
+    .then(res => res.json())
+    .then(d => {
+      if (d.nodes && d.nodes.length > 0) {
         const pods = d.nodes.filter((f) => f.data.kind === "pod").map(m => m.data.label);
         this.setState((state, props) => ({
           references: pods
         }));
-      });
-    } 
+      }
+    });
   }
 
   fetchUrl(url) {
@@ -89,11 +87,16 @@ class Overlay extends Component {
 
   onTabClick = (id) => {
     console.log("onTabClick: ", id);
-    if (id === "logs") {
-      this.fetchLogs();
-    } else if (id === "yaml") {
-      this.fetchYaml();
-      this.fetchRefs();
+    switch(id) {
+      case "logs":
+        this.fetchLogs();
+        break;
+      case "yaml":
+        this.fetchYaml();
+        break;
+      case "ref":
+        this.fetchRefs();
+        break;
     }
   }
 
@@ -162,12 +165,18 @@ class Overlay extends Component {
                         </div>
                       </div>
                     </div>
-                    <div className="relative mt-6 flex-1 px-4 sm:px-6">
-                      {this.state.references && this.state.references.map((ref) => (
-                        <p key={ref}>{ref}</p>
-                      ))}
-                    </div>
-                    <div className="relative mt-6 flex-1 px-4 sm:px-6"><pre>{this.state.resource}</pre></div>
+                    {this.state.currentTab === "yaml" || this.state.currentTab === "logs"
+                      ? <div className="relative mt-6 flex-1 px-4 sm:px-6"><pre>{this.state.resource}</pre></div>
+                      : ""
+                    }
+                    {this.state.currentTab === "ref"
+                      ? <div className="relative mt-6 flex-1 px-4 sm:px-6">
+                          {this.state.references && this.state.references.length > 0 && this.state.references.map((ref) => (
+                            <p key={ref}>{ref}</p>
+                          ))}
+                        </div>
+                      : ""
+                    }                    
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

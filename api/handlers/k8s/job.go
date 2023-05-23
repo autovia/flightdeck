@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func JobHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func JobHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/job/")
 	log.Printf("JobHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func JobHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Req
 	return nil
 }
 
-func JobPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func JobPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/job/")
 	log.Printf("JobPodListHandler url: %v", url)
 
@@ -59,7 +59,7 @@ func JobPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *h
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceJobListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceJobListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/job/")
 	log.Printf("NamespaceJobListHandler url: %v", url)
 

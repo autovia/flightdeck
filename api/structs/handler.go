@@ -39,7 +39,7 @@ func (p Public) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type Authorization struct {
 	*App
-	H func(e *App, w http.ResponseWriter, r *http.Request) error
+	H func(a *App, w http.ResponseWriter, r *http.Request) error
 }
 
 func (auth Authorization) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +60,7 @@ func (auth Authorization) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type KubeClient struct {
 	*App
-	H func(k *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error
+	H func(a *App, k *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error
 }
 
 func (kc KubeClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +73,7 @@ func (kc KubeClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Print(err)
 			HandleError(w, err)
 		}
-		err = kc.H(kubeclient, w, r)
+		err = kc.H(kc.App, kubeclient, w, r)
 		if err != nil {
 			log.Print(err)
 			HandleError(w, err)
@@ -85,7 +85,7 @@ func (kc KubeClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type ApiClient struct {
 	*App
-	H func(k *clientset.Clientset, w http.ResponseWriter, r *http.Request) error
+	H func(a *App, k *clientset.Clientset, w http.ResponseWriter, r *http.Request) error
 }
 
 func (ac ApiClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +98,7 @@ func (ac ApiClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Print(err)
 			HandleError(w, err)
 		}
-		err = ac.H(apiclient, w, r)
+		err = ac.H(ac.App, apiclient, w, r)
 		if err != nil {
 			log.Print(err)
 			HandleError(w, err)

@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ServiceAccountHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ServiceAccountHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/sa/")
 	log.Printf("ServiceAccountHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func ServiceAccountHandler(client *kubernetes.Clientset, w http.ResponseWriter, 
 	return S.RespondYAML(w, http.StatusOK, sa)
 }
 
-func ServiceAccountPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ServiceAccountPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/sa/")
 	log.Printf("ServiceAccountPodListHandler url: %v", url)
 
@@ -50,7 +50,7 @@ func ServiceAccountPodListHandler(client *kubernetes.Clientset, w http.ResponseW
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceServiceAccountListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceServiceAccountListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/sa/")
 	log.Printf("NamespaceServiceAccountListHandler url: %v", url)
 

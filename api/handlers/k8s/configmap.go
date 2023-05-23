@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ConfigMapHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ConfigMapHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/cm/")
 	log.Printf("ConfigMapHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func ConfigMapHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *ht
 	return nil
 }
 
-func ConfigMapPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ConfigMapPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/cm/")
 	log.Printf("ConfigMapPodListHandler url: %v", url)
 
@@ -67,7 +67,7 @@ func ConfigMapPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceConfigMapListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceConfigMapListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/cm/")
 	log.Printf("NamespaceConfigMapListHandler url: %v", url)
 

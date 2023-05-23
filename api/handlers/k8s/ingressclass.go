@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func IngressClassHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func IngressClassHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/ic/")
 	log.Printf("IngressClassHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func IngressClassHandler(client *kubernetes.Clientset, w http.ResponseWriter, r 
 	return nil
 }
 
-func IngressClassListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func IngressClassListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	log.Print("IngressClassListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}

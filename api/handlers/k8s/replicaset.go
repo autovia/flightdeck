@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ReplicaSetHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ReplicaSetHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/rs/")
 	log.Printf("ReplicaSetHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func ReplicaSetHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *h
 	return S.RespondYAML(w, http.StatusOK, rs)
 }
 
-func ReplicaSetPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ReplicaSetPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/rs/")
 	log.Printf("ReplicaSetPodListHandler url: %v", url)
 
@@ -60,7 +60,7 @@ func ReplicaSetPodListHandler(client *kubernetes.Clientset, w http.ResponseWrite
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceReplicaSetListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceReplicaSetListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/rs/")
 	log.Printf("NamespaceReplicaSetListHandler url: %v", url)
 

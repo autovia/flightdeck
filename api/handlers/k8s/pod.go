@@ -20,7 +20,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func PodHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PodHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/pod/")
 	log.Printf("PodHandler url: %v", url)
 
@@ -33,7 +33,7 @@ func PodHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Req
 	return S.RespondYAML(w, http.StatusOK, pod)
 }
 
-func PodVolumeHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PodVolumeHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/vol/")
 	log.Printf("PodVolumeHandler url: %v", url)
 
@@ -50,7 +50,7 @@ func PodVolumeHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *ht
 	return nil
 }
 
-func PodLogsHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PodLogsHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/logs/")
 	log.Printf("PodLogsHandler url: %v", url)
 
@@ -58,7 +58,7 @@ func PodLogsHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http
 	// container name
 	if url.Subresource != "" {
 		// open container on request
-		request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{Container: url.Subresource})
+		request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: url.Subresource})
 	} else {
 		pod, err := client.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 		if err != nil {
@@ -66,9 +66,9 @@ func PodLogsHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http
 		}
 
 		if len(pod.Spec.Containers) > 0 {
-			request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{Container: pod.Spec.Containers[0].Name})
+			request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: pod.Spec.Containers[0].Name})
 		} else {
-			request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{})
+			request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines})
 		}
 	}
 
@@ -86,7 +86,7 @@ func PodLogsHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http
 	return S.RespondText(w, http.StatusOK, buf.String())
 }
 
-func PodGraphHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	// namespace/podname
 	url := strings.Split(strings.Replace(r.URL.Path, "/api/v1/graph/pod/", "", -1), "/")
 	log.Printf("PodHandler url: %v", url)
@@ -301,7 +301,7 @@ func PodGraphHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *htt
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespacePodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespacePodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/pod/")
 	log.Printf("NamespacePodListHandler url: %v", url)
 

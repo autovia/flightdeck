@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func PersistentVolumeHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PersistentVolumeHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/pv/")
 	log.Printf("PersistentVolumeHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func PersistentVolumeHandler(client *kubernetes.Clientset, w http.ResponseWriter
 	return S.RespondYAML(w, http.StatusOK, pv)
 }
 
-func PersistentVolumeListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PersistentVolumeListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	log.Print("PersistentVolumeListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}

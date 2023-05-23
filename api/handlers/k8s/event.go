@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func EventHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func EventHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/ev/")
 	log.Printf("EventHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func EventHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.R
 	return nil
 }
 
-func NamespaceEventListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceEventListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/ev/")
 	log.Printf("NamespaceEventListHandler url: %v", url)
 

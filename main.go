@@ -32,6 +32,9 @@ func main() {
 	}
 	flag.Parse()
 
+	// Config
+	app.LoadConfig()
+
 	// Kube client
 	app.LoadKubeContext("")
 

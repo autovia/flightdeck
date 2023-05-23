@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func SecretHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func SecretHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/secret/")
 	log.Printf("SecretHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func SecretHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.
 	return S.RespondYAML(w, http.StatusOK, secret)
 }
 
-func SecretPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func SecretPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/secret/")
 	log.Printf("SecretHandler url: %v", url)
 
@@ -66,7 +66,7 @@ func SecretPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceSecretListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceSecretListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/secret/")
 	log.Printf("NamespaceSecretListHandler url: %v", url)
 

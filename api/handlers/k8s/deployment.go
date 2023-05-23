@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func DeploymentHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func DeploymentHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/deploy/")
 	log.Printf("DeploymentHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func DeploymentHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *h
 	return S.RespondYAML(w, http.StatusOK, deploy)
 }
 
-func DeploymentPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func DeploymentPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/deploy/")
 	log.Printf("DeploymentPodListHandler url: %v", url)
 
@@ -78,7 +78,7 @@ func DeploymentPodListHandler(client *kubernetes.Clientset, w http.ResponseWrite
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceDeploymentListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceDeploymentListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/deploy/")
 	log.Printf("NamespaceDeploymentListHandler url: %v", url)
 

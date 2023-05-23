@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ServiceHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ServiceHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/svc/")
 	log.Printf("ServiceHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func ServiceHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http
 	return S.RespondYAML(w, http.StatusOK, svc)
 }
 
-func NamespaceServiceListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceServiceListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/svc/")
 	log.Printf("NamespaceServiceListHandler url: %v", url)
 
@@ -51,7 +51,7 @@ func NamespaceServiceListHandler(client *kubernetes.Clientset, w http.ResponseWr
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func ServicePodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ServicePodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/svc/")
 	log.Printf("ServicePodListHandler url: %v", url)
 

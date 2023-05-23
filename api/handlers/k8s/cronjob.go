@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func CronJobHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func CronJobHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/cronjob/")
 	log.Printf("CronJobHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func CronJobHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http
 	return nil
 }
 
-func CronJobPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func CronJobPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/cronjob/")
 	log.Printf("CronJobPodListHandler url: %v", url)
 
@@ -68,7 +68,7 @@ func CronJobPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, 
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceCronJobListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceCronJobListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/cronjob/")
 	log.Printf("NamespaceCronJobListHandler url: %v", url)
 

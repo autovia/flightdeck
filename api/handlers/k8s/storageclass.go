@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func StorageClassHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func StorageClassHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/sc/")
 	log.Printf("StorageClassHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func StorageClassHandler(client *kubernetes.Clientset, w http.ResponseWriter, r 
 	return S.RespondYAML(w, http.StatusOK, sc)
 }
 
-func StorageClassListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func StorageClassListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	log.Print("StorageClassListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}

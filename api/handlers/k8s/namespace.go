@@ -14,9 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-//log.Printf("HERE IS YOUR USER: %s", r.Context().Value("user"))
-
-func NamespaceListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	log.Print("NamespaceListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}

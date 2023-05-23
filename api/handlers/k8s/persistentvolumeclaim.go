@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func PersistentVolumeClaim(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PersistentVolumeClaim(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/pvc/")
 	log.Printf("ReplicaSetHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func PersistentVolumeClaim(client *kubernetes.Clientset, w http.ResponseWriter, 
 	return S.RespondYAML(w, http.StatusOK, pvc)
 }
 
-func PersistentVolumeClaimPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PersistentVolumeClaimPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/pvc/")
 	log.Printf("PersistentVolumeClaimPodListHandler url: %v", url)
 
@@ -54,7 +54,7 @@ func PersistentVolumeClaimPodListHandler(client *kubernetes.Clientset, w http.Re
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespacePersistentVolumeClaimListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespacePersistentVolumeClaimListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/pvc/")
 	log.Printf("NamespacePersistentVolumeClaimListHandler url: %v", url)
 

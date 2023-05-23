@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func StatefulSetHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func StatefulSetHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/sts/")
 	log.Printf("StatefulSetHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func StatefulSetHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *
 	return S.RespondYAML(w, http.StatusOK, sts)
 }
 
-func StatefulSetPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func StatefulSetPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/sts/")
 	log.Printf("StatefulSetPodListHandler url: %v", url)
 
@@ -60,7 +60,7 @@ func StatefulSetPodListHandler(client *kubernetes.Clientset, w http.ResponseWrit
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceStatefulSetListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceStatefulSetListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/sts/")
 	log.Printf("NamespaceStatefulSetListHandler url: %v", url)
 

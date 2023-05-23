@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func NetworkPolicyHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NetworkPolicyHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/netpol/")
 	log.Printf("NetworkPolicyHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func NetworkPolicyHandler(client *kubernetes.Clientset, w http.ResponseWriter, r
 	return nil
 }
 
-func NamespaceNetworkPolicyListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceNetworkPolicyListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/netpol/")
 	log.Printf("NamespaceNetworkPolicyListHandler url: %v", url)
 

@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ClusterRoleHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ClusterRoleHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/c-role/")
 	log.Printf("ClusterRoleHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func ClusterRoleHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *
 	return S.RespondYAML(w, http.StatusOK, role)
 }
 
-func ClusterRoleListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ClusterRoleListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	log.Print("ClusterRoleListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}

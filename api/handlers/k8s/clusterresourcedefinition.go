@@ -14,7 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func CustomResourceDefinitionHandler(apiclient *clientset.Clientset, w http.ResponseWriter, r *http.Request) error {
+func CustomResourceDefinitionHandler(app *S.App, apiclient *clientset.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/crd/")
 	log.Printf("CustomResourceDefinitionHandler url: %v", url)
 
@@ -31,7 +31,7 @@ func CustomResourceDefinitionHandler(apiclient *clientset.Clientset, w http.Resp
 	return S.RespondYAML(w, http.StatusOK, crd)
 }
 
-func CustomResourceDefinitionListHandler(apiclient *clientset.Clientset, w http.ResponseWriter, r *http.Request) error {
+func CustomResourceDefinitionListHandler(app *S.App, apiclient *clientset.Clientset, w http.ResponseWriter, r *http.Request) error {
 	log.Print("CustomResourceDefinitionListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}

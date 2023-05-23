@@ -14,17 +14,18 @@ import (
 )
 
 type App struct {
-	Addr           *string
-	Router         *http.ServeMux
-	KubeConfigPath *string
-	ApiServerHost  *string
-	ProxyUrl       *string
-	InCluster      *bool
-	FileServer     *bool
-	FileServerPath *string
-	Client         *kubernetes.Clientset
-	ApiClient      *clientset.Clientset
-	AuthManager    AuthManager
+	Addr            *string
+	Router          *http.ServeMux
+	KubeConfigPath  *string
+	ApiServerHost   *string
+	ProxyUrl        *string
+	InCluster       *bool
+	FileServer      *bool
+	FileServerPath  *string
+	Client          *kubernetes.Clientset
+	ApiClient       *clientset.Clientset
+	AuthManager     AuthManager
+	PodLogTailLines *int64
 }
 
 var DefaultConfigName = "kubernetes"
@@ -136,4 +137,11 @@ func (app *App) buildConfigFromToken(token string) (*rest.Config, error) {
 		}
 	}
 	return clientCfg, nil
+}
+
+// Use configmap
+func (app *App) LoadConfig() {
+	// PodLogOptions, the number of lines from the end of the logs to show
+	var lines int64 = 1024
+	app.PodLogTailLines = &lines
 }

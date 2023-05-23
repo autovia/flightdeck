@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func IngressHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func IngressHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/ing/")
 	log.Printf("IngressHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func IngressHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http
 	return nil
 }
 
-func NamespaceIngressListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceIngressListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/ing/")
 	log.Printf("NamespaceIngressListHandler url: %v", url)
 

@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ClusterRoleBindingHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ClusterRoleBindingHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/crb/")
 	log.Printf("ClusterRoleBindingHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func ClusterRoleBindingHandler(client *kubernetes.Clientset, w http.ResponseWrit
 	return S.RespondYAML(w, http.StatusOK, role)
 }
 
-func ClusterRoleBindingListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ClusterRoleBindingListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	log.Print("ClusterRoleBindingListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}

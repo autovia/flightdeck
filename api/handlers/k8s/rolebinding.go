@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func RoleBindingHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func RoleBindingHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/rb/")
 	log.Printf("RoleBindingHandler url: %v", url)
 
@@ -27,7 +27,7 @@ func RoleBindingHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *
 	return S.RespondYAML(w, http.StatusOK, rb)
 }
 
-func NamespaceRoleBindingListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceRoleBindingListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/rb/")
 	log.Printf("NamespaceRoleBindingListHandler url: %v", url)
 

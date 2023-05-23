@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func DaemonSetHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func DaemonSetHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/ds/")
 	log.Printf("DaemonSetHandler url: %v", url)
 
@@ -28,7 +28,7 @@ func DaemonSetHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *ht
 	return nil
 }
 
-func DaemonSetPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func DaemonSetPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/ds/")
 	log.Printf("DaemonSetPodListHandler url: %v", url)
 
@@ -61,7 +61,7 @@ func DaemonSetPodListHandler(client *kubernetes.Clientset, w http.ResponseWriter
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceDaemonSetListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceDaemonSetListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/ds/")
 	log.Printf("NamespaceDaemonSetListHandler url: %v", url)
 

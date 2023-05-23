@@ -16,7 +16,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func NodeListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NodeListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	log.Print("NodeListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
@@ -31,7 +31,7 @@ func NodeListHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *htt
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NodeHandler(client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NodeHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
 	url := strings.Split(strings.Replace(r.URL.Path, "/api/v1/node/", "", -1), "/")
 	log.Printf("NodeHandler url: %v", url)
 	resource := url[0]
