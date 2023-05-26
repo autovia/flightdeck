@@ -12,14 +12,13 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/kubernetes"
 )
 
-func ServiceHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ServiceHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/svc/")
 	log.Printf("ServiceHandler url: %v", url)
 
-	svc, err := client.CoreV1().Services(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	svc, err := c.Clientset.CoreV1().Services(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -28,19 +27,19 @@ func ServiceHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWri
 	return S.RespondYAML(w, http.StatusOK, svc)
 }
 
-func NamespaceServiceListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceServiceListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/svc/")
 	log.Printf("NamespaceServiceListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := client.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	svcList, err := client.CoreV1().Services(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	svcList, err := c.Clientset.CoreV1().Services(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -51,19 +50,19 @@ func NamespaceServiceListHandler(app *S.App, client *kubernetes.Clientset, w htt
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func ServicePodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ServicePodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/svc/")
 	log.Printf("ServicePodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 	svcnode := g.AddNode("svc", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "svc"})
 
-	service, err := client.CoreV1().Services(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	service, err := c.Clientset.CoreV1().Services(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 
-	podList, err := client.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}

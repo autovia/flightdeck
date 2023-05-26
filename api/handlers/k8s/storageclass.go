@@ -11,14 +11,13 @@ import (
 	S "github.com/autovia/flightdeck/api/structs"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func StorageClassHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func StorageClassHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/sc/")
 	log.Printf("StorageClassHandler url: %v", url)
 
-	sc, err := client.StorageV1().StorageClasses().Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	sc, err := c.Clientset.StorageV1().StorageClasses().Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -27,12 +26,12 @@ func StorageClassHandler(app *S.App, client *kubernetes.Clientset, w http.Respon
 	return S.RespondYAML(w, http.StatusOK, sc)
 }
 
-func StorageClassListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func StorageClassListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	log.Print("StorageClassListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	scList, err := client.StorageV1().StorageClasses().List(context.TODO(), metav1.ListOptions{})
+	scList, err := c.Clientset.StorageV1().StorageClasses().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}

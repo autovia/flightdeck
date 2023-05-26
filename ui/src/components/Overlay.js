@@ -5,6 +5,7 @@ import React, {Fragment, Component} from 'react';
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import Tabs from './Tabs';
+import FilesystemBrowser from './FilesystemBrowser';
 
 //export default function Overlay({ data, params, close }) {
 class Overlay extends Component {
@@ -27,7 +28,8 @@ class Overlay extends Component {
   initTabs() {
     var tabs = [{ name: 'YAML', id: "yaml" }]
     if (this.props.data.kind === "pod") {
-      tabs.push({ name: 'Logs', id: "logs" }) 
+      tabs.push({ name: 'Logs', id: "logs" })
+      tabs.push({ name: 'Files', id: "files" }) 
     } else {
       tabs.push({ name: 'Used by pods', id: "ref" }) 
     }
@@ -56,10 +58,13 @@ class Overlay extends Component {
     }
   }
 
-  fetchRefs() {
+  fetchFiles() {
     this.setState((state, props) => ({
-      currentTab: "ref"
+      currentTab: "files"
     }));
+  }
+
+  fetchRefs() {
     const url = '/api/v1/graph/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label;
     fetch(url)
     //.then(res => res.text())
@@ -68,7 +73,8 @@ class Overlay extends Component {
       if (d.nodes && d.nodes.length > 0) {
         const pods = d.nodes.filter((f) => f.data.kind === "pod").map(m => m.data.label);
         this.setState((state, props) => ({
-          references: pods
+          references: pods,
+          currentTab: "ref"
         }));
       }
     });
@@ -91,6 +97,9 @@ class Overlay extends Component {
       case "logs":
         this.fetchLogs();
         break;
+      case "files":
+          this.fetchFiles();
+          break;
       case "yaml":
         this.fetchYaml();
         break;
@@ -167,6 +176,10 @@ class Overlay extends Component {
                     </div>
                     {this.state.currentTab === "yaml" || this.state.currentTab === "logs"
                       ? <div className="relative mt-6 flex-1 px-4 sm:px-6"><pre>{this.state.resource}</pre></div>
+                      : ""
+                    }
+                    {this.state.currentTab === "files"
+                      ? <FilesystemBrowser url={this.props.params.namespace + '/' + this.props.data.label + '/' + this.state.currentContainer}></FilesystemBrowser>
                       : ""
                     }
                     {this.state.currentTab === "ref"

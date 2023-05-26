@@ -13,15 +13,14 @@ import (
 	S "github.com/autovia/flightdeck/api/structs"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func NodeListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NodeListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	log.Print("NodeListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	nodeList, err := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	nodeList, err := c.Clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -31,20 +30,20 @@ func NodeListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NodeHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NodeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := strings.Split(strings.Replace(r.URL.Path, "/api/v1/node/", "", -1), "/")
 	log.Printf("NodeHandler url: %v", url)
 	resource := url[0]
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	no, err := client.CoreV1().Nodes().Get(context.TODO(), resource, metav1.GetOptions{})
+	no, err := c.Clientset.CoreV1().Nodes().Get(context.TODO(), resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("node", string(no.ObjectMeta.UID), no.ObjectMeta.Name, S.NodeOptions{Type: "node", Group: true})
 
-	podList, err := client.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{
+	podList, err := c.Clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("spec.nodeName=%s,status.phase=Running", no.Name),
 	})
 	if err != nil {

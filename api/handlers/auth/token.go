@@ -26,13 +26,13 @@ func LoginTokenHandler(app *S.App, w http.ResponseWriter, r *http.Request) error
 		return S.RespondError("Can not login without a token")
 	}
 
-	kubeclient, err := app.NewKubeClient(token)
+	client, err := app.NewKubeClient(token)
 	if err != nil {
 		log.Print(err)
 		return S.RespondError("Can not load kube client")
 	}
 
-	tokenReview, err := kubeclient.AuthenticationV1().TokenReviews().Create(context.TODO(), &authv1.TokenReview{
+	tokenReview, err := client.Clientset.AuthenticationV1().TokenReviews().Create(context.TODO(), &authv1.TokenReview{
 		Spec: authv1.TokenReviewSpec{
 			Token: token,
 		},
@@ -89,13 +89,13 @@ func ResetTokenHandler(app *S.App, w http.ResponseWriter, r *http.Request) error
 func StatusTokenHandler(app *S.App, w http.ResponseWriter, r *http.Request) error {
 	token := r.Context().Value("token").(string)
 
-	kubeclient, err := app.NewKubeClient(token)
+	client, err := app.NewKubeClient(token)
 	if err != nil {
 		log.Print("Can not create kube client")
 		return S.RespondError(err)
 	}
 
-	tokenReview, err := kubeclient.AuthenticationV1().TokenReviews().Create(context.TODO(), &authv1.TokenReview{
+	tokenReview, err := client.Clientset.AuthenticationV1().TokenReviews().Create(context.TODO(), &authv1.TokenReview{
 		Spec: authv1.TokenReviewSpec{
 			Token: token,
 		},

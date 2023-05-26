@@ -13,8 +13,6 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v2"
-	clientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/client-go/kubernetes"
 )
 
 type Public struct {
@@ -60,7 +58,7 @@ func (auth Authorization) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type KubeClient struct {
 	*App
-	H func(a *App, k *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error
+	H func(a *App, c *Client, w http.ResponseWriter, r *http.Request) error
 }
 
 func (kc KubeClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -68,12 +66,12 @@ func (kc KubeClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tokenIsValid, token, err := kc.App.AuthManager.Authorize(r)
 	if tokenIsValid && len(token) > 0 {
-		kubeclient, err := kc.App.NewKubeClient(token)
+		client, err := kc.App.NewKubeClient(token)
 		if err != nil {
 			log.Print(err)
 			HandleError(w, err)
 		}
-		err = kc.H(kc.App, kubeclient, w, r)
+		err = kc.H(kc.App, client, w, r)
 		if err != nil {
 			log.Print(err)
 			HandleError(w, err)
@@ -85,7 +83,7 @@ func (kc KubeClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type ApiClient struct {
 	*App
-	H func(a *App, k *clientset.Clientset, w http.ResponseWriter, r *http.Request) error
+	H func(a *App, c *Client, w http.ResponseWriter, r *http.Request) error
 }
 
 func (ac ApiClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -93,12 +91,12 @@ func (ac ApiClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tokenIsValid, token, err := ac.App.AuthManager.Authorize(r)
 	if tokenIsValid && len(token) > 0 {
-		apiclient, err := ac.App.NewApiClient(token)
+		client, err := ac.App.NewApiClient(token)
 		if err != nil {
 			log.Print(err)
 			HandleError(w, err)
 		}
-		err = ac.H(ac.App, apiclient, w, r)
+		err = ac.H(ac.App, client, w, r)
 		if err != nil {
 			log.Print(err)
 			HandleError(w, err)
@@ -134,6 +132,7 @@ type Url struct {
 	Namespace   string
 	Resource    string
 	Subresource string
+	Path        string
 }
 
 func GetRequestParams(r *http.Request, path string) Url {
@@ -150,6 +149,11 @@ func GetRequestParams(r *http.Request, path string) Url {
 		u.Namespace = request[0]
 		u.Resource = request[1]
 		u.Subresource = request[2]
+	case len(request) > 3:
+		u.Namespace = request[0]
+		u.Resource = request[1]
+		u.Subresource = request[2]
+		u.Path = strings.Join(request[3:], "/")
 	}
 	return u
 }

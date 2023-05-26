@@ -11,14 +11,13 @@ import (
 	S "github.com/autovia/flightdeck/api/structs"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func JobHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func JobHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/job/")
 	log.Printf("JobHandler url: %v", url)
 
-	job, err := client.BatchV1().Jobs(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	job, err := c.Clientset.BatchV1().Jobs(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -28,21 +27,21 @@ func JobHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter,
 	return nil
 }
 
-func JobPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func JobPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/job/")
 	log.Printf("JobPodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 	jobnode := g.AddNode("job", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "job"})
 
-	podList, err := client.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	for _, pod := range podList.Items {
 		for _, podOwnerRefs := range pod.ObjectMeta.OwnerReferences {
 			if podOwnerRefs.Kind == "Job" {
-				job, err := client.BatchV1().Jobs(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+				job, err := c.Clientset.BatchV1().Jobs(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
 				if err != nil {
 					return S.RespondError(err)
 				}
@@ -59,19 +58,19 @@ func JobPodListHandler(app *S.App, client *kubernetes.Clientset, w http.Response
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceJobListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceJobListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/job/")
 	log.Printf("NamespaceJobListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := client.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	jobList, err := client.BatchV1().Jobs(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	jobList, err := c.Clientset.BatchV1().Jobs(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}

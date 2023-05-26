@@ -11,14 +11,13 @@ import (
 	S "github.com/autovia/flightdeck/api/structs"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func CronJobHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func CronJobHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/cronjob/")
 	log.Printf("CronJobHandler url: %v", url)
 
-	cronjob, err := client.BatchV1().CronJobs(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	cronjob, err := c.Clientset.BatchV1().CronJobs(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -28,14 +27,14 @@ func CronJobHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWri
 	return nil
 }
 
-func CronJobPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func CronJobPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/cronjob/")
 	log.Printf("CronJobPodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 	cjnode := g.AddNode("cronjob", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "cronjob"})
 
-	podList, err := client.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -43,13 +42,13 @@ func CronJobPodListHandler(app *S.App, client *kubernetes.Clientset, w http.Resp
 	for _, pod := range podList.Items {
 		for _, podOwnerRefs := range pod.ObjectMeta.OwnerReferences {
 			if podOwnerRefs.Kind == "Job" {
-				job, err := client.BatchV1().Jobs(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+				job, err := c.Clientset.BatchV1().Jobs(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
 				if err != nil {
 					return S.RespondError(err)
 				}
 				for _, jobOwnerRefs := range job.ObjectMeta.OwnerReferences {
 					if jobOwnerRefs.Kind == "CronJob" {
-						cronjob, err := client.BatchV1().CronJobs(pod.Namespace).Get(context.Background(), jobOwnerRefs.Name, metav1.GetOptions{})
+						cronjob, err := c.Clientset.BatchV1().CronJobs(pod.Namespace).Get(context.Background(), jobOwnerRefs.Name, metav1.GetOptions{})
 						if err != nil {
 							return S.RespondError(err)
 						}
@@ -68,19 +67,19 @@ func CronJobPodListHandler(app *S.App, client *kubernetes.Clientset, w http.Resp
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceCronJobListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceCronJobListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/cronjob/")
 	log.Printf("NamespaceCronJobListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := client.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	cronjobList, err := client.BatchV1().CronJobs(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	cronjobList, err := c.Clientset.BatchV1().CronJobs(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}

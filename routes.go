@@ -159,6 +159,8 @@ func InitRoutes(app *S.App) {
 	// Pod scoped
 	app.Router.Handle("/api/v1/vol/", S.KubeClient{app, k8s.PodVolumeHandler})
 	app.Router.Handle("/api/v1/logs/", S.KubeClient{app, k8s.PodLogsHandler})
+	app.Router.Handle("/api/v1/fs/", S.KubeClient{app, k8s.PodFilesystemHandler})
+	app.Router.Handle("/api/v1/file/", S.KubeClient{app, k8s.PodFileOpenHandler})
 
 	// Main
 	if *app.FileServer {

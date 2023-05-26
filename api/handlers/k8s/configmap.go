@@ -11,14 +11,13 @@ import (
 	S "github.com/autovia/flightdeck/api/structs"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func ConfigMapHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ConfigMapHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/cm/")
 	log.Printf("ConfigMapHandler url: %v", url)
 
-	cm, err := client.CoreV1().ConfigMaps(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	cm, err := c.Clientset.CoreV1().ConfigMaps(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -28,14 +27,14 @@ func ConfigMapHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseW
 	return nil
 }
 
-func ConfigMapPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ConfigMapPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/cm/")
 	log.Printf("ConfigMapPodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 	cmnode := g.AddNode("cm", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "cm"})
 
-	podList, err := client.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -67,19 +66,19 @@ func ConfigMapPodListHandler(app *S.App, client *kubernetes.Clientset, w http.Re
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceConfigMapListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceConfigMapListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/cm/")
 	log.Printf("NamespaceConfigMapListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := client.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	cmList, err := client.CoreV1().ConfigMaps(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	cmList, err := c.Clientset.CoreV1().ConfigMaps(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}

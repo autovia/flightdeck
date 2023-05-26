@@ -11,14 +11,13 @@ import (
 	S "github.com/autovia/flightdeck/api/structs"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func SecretHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func SecretHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/secret/")
 	log.Printf("SecretHandler url: %v", url)
 
-	secret, err := client.CoreV1().Secrets(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	secret, err := c.Clientset.CoreV1().Secrets(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -27,14 +26,14 @@ func SecretHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWrit
 	return S.RespondYAML(w, http.StatusOK, secret)
 }
 
-func SecretPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func SecretPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/secret/")
 	log.Printf("SecretHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 	secnode := g.AddNode("secret", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "secret"})
 
-	podList, err := client.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -66,19 +65,19 @@ func SecretPodListHandler(app *S.App, client *kubernetes.Clientset, w http.Respo
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceSecretListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceSecretListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/secret/")
 	log.Printf("NamespaceSecretListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := client.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	secList, err := client.CoreV1().Secrets(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	secList, err := c.Clientset.CoreV1().Secrets(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}

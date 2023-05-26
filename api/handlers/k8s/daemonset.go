@@ -11,14 +11,13 @@ import (
 	S "github.com/autovia/flightdeck/api/structs"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func DaemonSetHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func DaemonSetHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/ds/")
 	log.Printf("DaemonSetHandler url: %v", url)
 
-	ds, err := client.AppsV1().DaemonSets(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	ds, err := c.Clientset.AppsV1().DaemonSets(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -28,14 +27,14 @@ func DaemonSetHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseW
 	return nil
 }
 
-func DaemonSetPodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func DaemonSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/graph/ds/")
 	log.Printf("DaemonSetPodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 	dsnode := g.AddNode("ds", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "ds"})
 
-	podList, err := client.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -43,7 +42,7 @@ func DaemonSetPodListHandler(app *S.App, client *kubernetes.Clientset, w http.Re
 		for _, podOwnerRefs := range pod.ObjectMeta.OwnerReferences {
 			if podOwnerRefs.Kind == "DaemonSet" {
 
-				daemonset, err := client.AppsV1().DaemonSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+				daemonset, err := c.Clientset.AppsV1().DaemonSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
 				if err != nil {
 					return S.RespondError(err)
 				}
@@ -61,19 +60,19 @@ func DaemonSetPodListHandler(app *S.App, client *kubernetes.Clientset, w http.Re
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespaceDaemonSetListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespaceDaemonSetListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/ds/")
 	log.Printf("NamespaceDaemonSetListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := client.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	dsList, err := client.AppsV1().DaemonSets(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	dsList, err := c.Clientset.AppsV1().DaemonSets(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}

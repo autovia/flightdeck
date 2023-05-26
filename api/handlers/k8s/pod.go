@@ -6,6 +6,7 @@ package k8s
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -16,15 +17,14 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
-func PodHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PodHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/pod/")
 	log.Printf("PodHandler url: %v", url)
 
-	pod, err := client.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	pod, err := c.Clientset.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -33,11 +33,11 @@ func PodHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter,
 	return S.RespondYAML(w, http.StatusOK, pod)
 }
 
-func PodVolumeHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PodVolumeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/vol/")
 	log.Printf("PodVolumeHandler url: %v", url)
 
-	pod, err := client.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	pod, err := c.Clientset.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -50,7 +50,55 @@ func PodVolumeHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseW
 	return nil
 }
 
-func PodLogsHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PodFilesystemHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
+	url := S.GetRequestParams(r, "/api/v1/fs/")
+	log.Printf("PodFilesystemHandler url: %v", url)
+
+	container, err := c.GetContainer(url)
+	if err != nil {
+		return S.RespondError(err)
+	}
+
+	path := "/"
+	if url.Path != "" {
+		path = path + url.Path
+	}
+
+	cmd := []string{"find", path, "-maxdepth", "1", "-printf", "{\"size\": %s, \"name\":\"%p\", \"modified\":\"%TY-%Tm-%Td %TH:%TM:%.2TS\", \"user\":\"%u\", \"group\":\"%g\", \"permission\": \"%m\", \"type\":\"%y\"},"}
+
+	buf, err := c.ExecCommand(url, container, cmd)
+	if err != nil {
+		return S.RespondError(err)
+	}
+
+	return S.RespondText(w, http.StatusOK, fmt.Sprintf("[%s]", strings.TrimSuffix(buf.String(), ",")))
+}
+
+func PodFileOpenHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
+	url := S.GetRequestParams(r, "/api/v1/file/")
+	log.Printf("PodFileOpenHandler url: %v", url)
+
+	container, err := c.GetContainer(url)
+	if err != nil {
+		return S.RespondError(err)
+	}
+
+	path := "/"
+	if url.Path != "" {
+		path = path + url.Path
+	}
+
+	cmd := []string{"cat", path}
+
+	buf, err := c.ExecCommand(url, container, cmd)
+	if err != nil {
+		return S.RespondError(err)
+	}
+
+	return S.RespondText(w, http.StatusOK, buf.String())
+}
+
+func PodLogsHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/logs/")
 	log.Printf("PodLogsHandler url: %v", url)
 
@@ -58,17 +106,17 @@ func PodLogsHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWri
 	// container name
 	if url.Subresource != "" {
 		// open container on request
-		request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: url.Subresource})
+		request = c.Clientset.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: url.Subresource})
 	} else {
-		pod, err := client.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+		pod, err := c.Clientset.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 		if err != nil {
 			return S.RespondError(err)
 		}
 
 		if len(pod.Spec.Containers) > 0 {
-			request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: pod.Spec.Containers[0].Name})
+			request = c.Clientset.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: pod.Spec.Containers[0].Name})
 		} else {
-			request = client.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines})
+			request = c.Clientset.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines})
 		}
 	}
 
@@ -86,7 +134,7 @@ func PodLogsHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWri
 	return S.RespondText(w, http.StatusOK, buf.String())
 }
 
-func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	// namespace/podname
 	url := strings.Split(strings.Replace(r.URL.Path, "/api/v1/graph/pod/", "", -1), "/")
 	log.Printf("PodHandler url: %v", url)
@@ -97,7 +145,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
 	// pod
-	pod, err := client.CoreV1().Pods(namespace).Get(context.TODO(), podname, metav1.GetOptions{})
+	pod, err := c.Clientset.CoreV1().Pods(namespace).Get(context.TODO(), podname, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -109,7 +157,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 	podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Containers: containers, Namespace: namespace, Type: "podedge"})
 
 	// services
-	svcList, err := client.CoreV1().Services(pod.Namespace).List(context.TODO(), metav1.ListOptions{})
+	svcList, err := c.Clientset.CoreV1().Services(pod.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -125,7 +173,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 	}
 
 	// network policy
-	netpolList, err := client.NetworkingV1().NetworkPolicies(pod.Namespace).List(context.TODO(), metav1.ListOptions{})
+	netpolList, err := c.Clientset.NetworkingV1().NetworkPolicies(pod.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -141,7 +189,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 	for _, podOwnerRefs := range pod.ObjectMeta.OwnerReferences {
 		log.Printf("podOwnerRefs.Kind: %v", podOwnerRefs.Kind)
 		if podOwnerRefs.Kind == "ReplicaSet" {
-			replicaset, err := client.AppsV1().ReplicaSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+			replicaset, err := c.Clientset.AppsV1().ReplicaSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
 			if err != nil {
 				return S.RespondError(err)
 			}
@@ -150,7 +198,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 
 			for _, replOwnerRefs := range replicaset.ObjectMeta.OwnerReferences {
 				if replOwnerRefs.Kind == "Deployment" {
-					replDeployment, err := client.AppsV1().Deployments(pod.Namespace).Get(context.Background(), replOwnerRefs.Name, metav1.GetOptions{})
+					replDeployment, err := c.Clientset.AppsV1().Deployments(pod.Namespace).Get(context.Background(), replOwnerRefs.Name, metav1.GetOptions{})
 					if err != nil {
 						return S.RespondError(err)
 					}
@@ -160,7 +208,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 			}
 		}
 		if podOwnerRefs.Kind == "Deployment" {
-			deployment, err := client.AppsV1().Deployments(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+			deployment, err := c.Clientset.AppsV1().Deployments(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
 			if err != nil {
 				return S.RespondError(err)
 			}
@@ -168,7 +216,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 			g.AddEdge(deploynode, podnode)
 		}
 		if podOwnerRefs.Kind == "StatefulSet" {
-			statefulset, err := client.AppsV1().StatefulSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+			statefulset, err := c.Clientset.AppsV1().StatefulSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
 			if err != nil {
 				return S.RespondError(err)
 			}
@@ -176,7 +224,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 			g.AddEdge(stsnode, podnode)
 		}
 		if podOwnerRefs.Kind == "DaemonSet" {
-			daemonset, err := client.AppsV1().DaemonSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+			daemonset, err := c.Clientset.AppsV1().DaemonSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
 			if err != nil {
 				return S.RespondError(err)
 			}
@@ -184,7 +232,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 			g.AddEdge(dsnode, podnode)
 		}
 		if podOwnerRefs.Kind == "Job" {
-			job, err := client.BatchV1().Jobs(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
+			job, err := c.Clientset.BatchV1().Jobs(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
 			if err != nil {
 				return S.RespondError(err)
 			}
@@ -193,7 +241,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 
 			for _, jobOwnerRefs := range job.ObjectMeta.OwnerReferences {
 				if jobOwnerRefs.Kind == "CronJob" {
-					cronjob, err := client.BatchV1().CronJobs(pod.Namespace).Get(context.Background(), jobOwnerRefs.Name, metav1.GetOptions{})
+					cronjob, err := c.Clientset.BatchV1().CronJobs(pod.Namespace).Get(context.Background(), jobOwnerRefs.Name, metav1.GetOptions{})
 					if err != nil {
 						return S.RespondError(err)
 					}
@@ -220,7 +268,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 			}
 		case volume.PersistentVolumeClaim != nil:
 			if !g.Includes(volume.PersistentVolumeClaim.ClaimName) {
-				pvc, err := client.CoreV1().PersistentVolumeClaims(pod.Namespace).Get(context.Background(), volume.PersistentVolumeClaim.ClaimName, metav1.GetOptions{})
+				pvc, err := c.Clientset.CoreV1().PersistentVolumeClaims(pod.Namespace).Get(context.Background(), volume.PersistentVolumeClaim.ClaimName, metav1.GetOptions{})
 				if err != nil {
 					return S.RespondError(err)
 				}
@@ -263,7 +311,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 		sanode := g.AddNode("sa", pod.Spec.ServiceAccountName, pod.Spec.ServiceAccountName, S.NodeOptions{Namespace: namespace, Type: "sa"})
 		g.AddEdge(sanode, podnode)
 
-		rbList, err := client.RbacV1().RoleBindings(pod.Namespace).List(context.Background(), metav1.ListOptions{})
+		rbList, err := c.Clientset.RbacV1().RoleBindings(pod.Namespace).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return S.RespondError(err)
 		}
@@ -280,7 +328,7 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 			}
 		}
 
-		crbList, err := client.RbacV1().ClusterRoleBindings().List(context.Background(), metav1.ListOptions{})
+		crbList, err := c.Clientset.RbacV1().ClusterRoleBindings().List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return S.RespondError(err)
 		}
@@ -301,19 +349,19 @@ func PodGraphHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWr
 	return S.RespondJSON(w, http.StatusOK, g)
 }
 
-func NamespacePodListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func NamespacePodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/namespace/pod/")
 	log.Printf("NamespacePodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := client.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	podList, err := client.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}

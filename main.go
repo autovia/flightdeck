@@ -43,7 +43,7 @@ func main() {
 	InitRoutes(app)
 
 	// JWT manager
-	app.AuthManager = S.NewAuthManager(app.Client)
+	app.AuthManager = S.NewAuthManager(app.Client.Clientset)
 
 	// Server
 	srv := &http.Server{

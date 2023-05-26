@@ -14,21 +14,20 @@ import (
 )
 
 type App struct {
-	Addr            *string
-	Router          *http.ServeMux
-	KubeConfigPath  *string
-	ApiServerHost   *string
-	ProxyUrl        *string
-	InCluster       *bool
-	FileServer      *bool
-	FileServerPath  *string
-	Client          *kubernetes.Clientset
-	ApiClient       *clientset.Clientset
-	AuthManager     AuthManager
-	PodLogTailLines *int64
+	Addr           *string
+	Router         *http.ServeMux
+	KubeConfigPath *string
+	ApiServerHost  *string
+	ProxyUrl       *string
+	InCluster      *bool
+	FileServer     *bool
+	FileServerPath *string
+	Client         *Client
+	AuthManager    AuthManager
+	// config
+	PodLogTailLines   *int64
+	DefaultConfigName *string
 }
-
-var DefaultConfigName = "kubernetes"
 
 func (app *App) LoadKubeContext(context string) error {
 	var config *rest.Config
@@ -61,17 +60,22 @@ func (app *App) LoadKubeContext(context string) error {
 	if err != nil {
 		return err
 	}
-	app.Client = k8sclientset
 
 	apiclientset, err := clientset.NewForConfig(config)
 	if err != nil {
 		return err
 	}
-	app.ApiClient = apiclientset
+
+	app.Client = &Client{
+		Clientset: k8sclientset,
+		ApiClient: apiclientset,
+		Config:    config,
+	}
+
 	return nil
 }
 
-func (app *App) NewKubeClient(token string) (*kubernetes.Clientset, error) {
+func (app *App) NewKubeClient(token string) (*Client, error) {
 	config, err := app.buildConfigFromToken(token)
 	if err != nil {
 		return nil, err
@@ -82,10 +86,10 @@ func (app *App) NewKubeClient(token string) (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 
-	return clientset, nil
+	return &Client{Clientset: clientset, Config: config}, nil
 }
 
-func (app *App) NewApiClient(token string) (*clientset.Clientset, error) {
+func (app *App) NewApiClient(token string) (*Client, error) {
 	config, err := app.buildConfigFromToken(token)
 	if err != nil {
 		return nil, err
@@ -95,7 +99,8 @@ func (app *App) NewApiClient(token string) (*clientset.Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
-	return apiclientset, nil
+
+	return &Client{ApiClient: apiclientset, Config: config}, nil
 }
 
 func (app *App) buildConfigFromToken(token string) (*rest.Config, error) {
@@ -108,18 +113,18 @@ func (app *App) buildConfigFromToken(token string) (*rest.Config, error) {
 			return nil, err
 		}
 		apiConfig := api.NewConfig()
-		apiConfig.Clusters[DefaultConfigName] = &api.Cluster{
+		apiConfig.Clusters[*app.DefaultConfigName] = &api.Cluster{
 			Server:                   cfg.Host,
 			CertificateAuthority:     cfg.TLSClientConfig.CAFile,
 			CertificateAuthorityData: cfg.TLSClientConfig.CAData,
 			InsecureSkipTLSVerify:    cfg.TLSClientConfig.Insecure,
 		}
-		apiConfig.AuthInfos[DefaultConfigName] = &api.AuthInfo{Token: token}
-		apiConfig.Contexts[DefaultConfigName] = &api.Context{
-			Cluster:  DefaultConfigName,
-			AuthInfo: DefaultConfigName,
+		apiConfig.AuthInfos[*app.DefaultConfigName] = &api.AuthInfo{Token: token}
+		apiConfig.Contexts[*app.DefaultConfigName] = &api.Context{
+			Cluster:  *app.DefaultConfigName,
+			AuthInfo: *app.DefaultConfigName,
 		}
-		apiConfig.CurrentContext = DefaultConfigName
+		apiConfig.CurrentContext = *app.DefaultConfigName
 
 		clientConfig := clientcmd.NewDefaultClientConfig(
 			*apiConfig,
@@ -144,4 +149,7 @@ func (app *App) LoadConfig() {
 	// PodLogOptions, the number of lines from the end of the logs to show
 	var lines int64 = 1024
 	app.PodLogTailLines = &lines
+
+	var configname string = "kubernetes"
+	app.DefaultConfigName = &configname
 }

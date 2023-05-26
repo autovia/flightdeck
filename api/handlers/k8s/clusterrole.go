@@ -11,14 +11,13 @@ import (
 	S "github.com/autovia/flightdeck/api/structs"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func ClusterRoleHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ClusterRoleHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := S.GetRequestParams(r, "/api/v1/c-role/")
 	log.Printf("ClusterRoleHandler url: %v", url)
 
-	role, err := client.RbacV1().ClusterRoles().Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	role, err := c.Clientset.RbacV1().ClusterRoles().Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -27,12 +26,12 @@ func ClusterRoleHandler(app *S.App, client *kubernetes.Clientset, w http.Respons
 	return S.RespondYAML(w, http.StatusOK, role)
 }
 
-func ClusterRoleListHandler(app *S.App, client *kubernetes.Clientset, w http.ResponseWriter, r *http.Request) error {
+func ClusterRoleListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	log.Print("ClusterRoleListHandler")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	crList, err := client.RbacV1().ClusterRoles().List(context.TODO(), metav1.ListOptions{})
+	crList, err := c.Clientset.RbacV1().ClusterRoles().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
