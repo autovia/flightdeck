@@ -6,6 +6,7 @@ package structs
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 
 	v1 "k8s.io/api/core/v1"
@@ -46,19 +47,22 @@ func (c *Client) ExecCommand(url Url, container string, cmd []string) (*bytes.Bu
 		Command:   cmd,
 		Stdin:     true,
 		Stdout:    true,
+		Stderr:    true,
 	}, scheme.ParameterCodec)
 
 	exec, err := remotecommand.NewSPDYExecutor(c.Config, "POST", req.URL())
 	if err != nil {
 		return nil, err
 	}
-	buf := new(bytes.Buffer)
+	outBuf := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
 	err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
 		Stdin:  os.Stdin,
-		Stdout: buf,
+		Stdout: outBuf,
+		Stderr: errBuf,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can not exec cmd: %s", errBuf.String())
 	}
-	return buf, nil
+	return outBuf, nil
 }

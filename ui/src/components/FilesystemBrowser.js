@@ -25,7 +25,7 @@ class FilesystemBrowser extends Component {
 
     onClick = (path, type = "d") => {
         console.log("FilesystemBrowser onClick: ", path);
-        if (type === "f" || type === "l") {
+        if (type === "r" || type === "s") {
           this.fetchFile(path);
         } else {
           this.fetchUrl(path);
@@ -155,7 +155,7 @@ class FilesystemBrowser extends Component {
                 <span className="w-1/6">{inode.permission}</span> 
                 <span className="w-1/6">{inode.user}:{inode.group}</span>
                 <span className="w-1/6">{inode.modified}</span>
-                <span className="w-1/6">{inode.type === "f" && inode.size != 0 ? this.humanRead(inode.size) : null}</span>  
+                <span className="w-1/6">{inode.type === "r" && inode.size != 0 ? this.humanRead(inode.size) : null}</span>  
               </li>                
               ))}
               </ul>

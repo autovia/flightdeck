@@ -64,14 +64,18 @@ func PodFilesystemHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *htt
 		path = path + url.Path
 	}
 
-	cmd := []string{"find", path, "-maxdepth", "1", "-printf", "{\"size\": %s, \"name\":\"%p\", \"modified\":\"%TY-%Tm-%Td %TH:%TM:%.2TS\", \"user\":\"%u\", \"group\":\"%g\", \"permission\": \"%m\", \"type\":\"%y\"},"}
+	// debian, ubuntu
+	// cmd := []string{"find", path, "-maxdepth", "1", "-printf", "{\"size\": %s, \"name\":\"%p\", \"modified\":\"%TY-%Tm-%Td %TH:%TM:%.2TS\", \"user\":\"%u\", \"group\":\"%g\", \"permission\": \"%m\", \"type\":\"%y\"},"}
+	// busybox, alpine
+	cmd := []string{"find", path, "-maxdepth", "1", "-exec", "stat", "-c", "{\"name\": \"%n\", \"size\":%s, \"modified\":\"%.19y\", \"user\":\"%U\", \"group\":\"%G\", \"permission\": \"%A\", \"type\":\"%.1F\"},", "{}", "+"}
 
 	buf, err := c.ExecCommand(url, container, cmd)
 	if err != nil {
 		return S.RespondError(err)
+
 	}
 
-	return S.RespondText(w, http.StatusOK, fmt.Sprintf("[%s]", strings.TrimSuffix(buf.String(), ",")))
+	return S.RespondText(w, http.StatusOK, fmt.Sprintf("[%s]", strings.TrimSuffix(strings.TrimSpace(buf.String()), ",")))
 }
 
 func PodFileOpenHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
