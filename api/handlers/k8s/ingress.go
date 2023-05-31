@@ -23,8 +23,7 @@ func IngressHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Requ
 	}
 	role.ObjectMeta.ManagedFields = nil
 
-	S.RespondYAML(w, http.StatusOK, role)
-	return nil
+	return S.RespondFormat(r, w, http.StatusOK, role)
 }
 
 func NamespaceIngressListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

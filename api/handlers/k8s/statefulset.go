@@ -23,7 +23,7 @@ func StatefulSetHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.
 	}
 	sts.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, sts)
+	return S.RespondFormat(r, w, http.StatusOK, sts)
 }
 
 func StatefulSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

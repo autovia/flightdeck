@@ -23,8 +23,7 @@ func ConfigMapHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Re
 	}
 	cm.ObjectMeta.ManagedFields = nil
 
-	S.RespondYAML(w, http.StatusOK, cm)
-	return nil
+	return S.RespondFormat(r, w, http.StatusOK, cm)
 }
 
 func ConfigMapPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

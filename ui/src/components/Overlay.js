@@ -6,6 +6,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import Tabs from './Tabs';
 import FilesystemBrowser from './FilesystemBrowser';
+import DescribeResource from './DescribeResource';
 
 //export default function Overlay({ data, params, close }) {
 class Overlay extends Component {
@@ -16,17 +17,18 @@ class Overlay extends Component {
         resource: null,
         references: [],
         tabs: this.initTabs(),
-        currentTab: "yaml",
+        currentTab: "",
         currentContainer: this.props.data.kind === "pod" && this.props.data.containers && this.props.data.containers.length > 0 ? this.props.data.containers[0] : ""
     }
   }
 
   componentDidMount() {
-    this.fetchYaml();
+    this.fetchDescribe();
   }
 
   initTabs() {
-    var tabs = [{ name: 'YAML', id: "yaml" }]
+    var tabs = [{ name: 'Describe', id: "describe" }]
+    tabs.push({ name: 'Yaml', id: "yaml" }) 
     if (this.props.data.kind === "pod") {
       tabs.push({ name: 'Logs', id: "logs" })
       tabs.push({ name: 'Files', id: "files" }) 
@@ -37,24 +39,26 @@ class Overlay extends Component {
   }
 
   fetchYaml() {
-    this.setState((state, props) => ({
-      currentTab: "yaml"
-    }));
     if (this.props.data.kind === "vol") {
-      this.fetchUrl('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.params.pod + '/'  + this.props.data.label);
+      this.fetchText('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.params.pod + '/'  + this.props.data.label, "yaml");
     } else {
-      this.fetchUrl('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label);
+      this.fetchText('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label, "yaml");
+    }
+  }
+
+  fetchDescribe() {
+    if (this.props.data.kind === "vol") {
+      this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.params.pod + '/'  + this.props.data.label + '?format=json', "describe");
+    } else {
+      this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label + '?format=json', "describe");
     }
   }
 
   fetchLogs() {
-    this.setState((state, props) => ({
-      currentTab: "logs"
-    }));
     if (this.state.currentContainer != "") {
-      this.fetchUrl('/api/v1/logs/'  + this.props.params.namespace + '/' + this.props.data.label + '/' + this.state.currentContainer);
+      this.fetchText('/api/v1/pod/logs/'  + this.props.params.namespace + '/' + this.props.data.label + '/' + this.state.currentContainer, "logs");
     } else {
-      this.fetchUrl('/api/v1/logs/'  + this.props.params.namespace + '/' + this.props.data.label);
+      this.fetchText('/api/v1/pod/logs/'  + this.props.params.namespace + '/' + this.props.data.label, "logs");
     }
   }
 
@@ -80,13 +84,24 @@ class Overlay extends Component {
     });
   }
 
-  fetchUrl(url) {
+  fetchText(url, tab) {
     fetch(url)
     .then(res => res.text())
-    //.then(res => res.json())
     .then(d => {
       this.setState((state, props) => ({
-        resource: d
+        resource: d,
+        currentTab: tab
+      }));
+    });
+  }
+
+  fetchJson(url, tab) {
+    fetch(url)
+    .then(res => res.json())
+    .then(d => {
+      this.setState((state, props) => ({
+        resource: d,
+        currentTab: tab
       }));
     });
   }
@@ -102,6 +117,9 @@ class Overlay extends Component {
           break;
       case "yaml":
         this.fetchYaml();
+        break;
+      case "describe":
+        this.fetchDescribe();
         break;
       case "ref":
         this.fetchRefs();
@@ -176,6 +194,10 @@ class Overlay extends Component {
                     </div>
                     {this.state.currentTab === "yaml" || this.state.currentTab === "logs"
                       ? <div className="relative mt-6 flex-1 px-4 sm:px-6"><pre>{this.state.resource}</pre></div>
+                      : ""
+                    }
+                    {this.state.currentTab === "describe"
+                      ? <DescribeResource kind={this.props.data.kind} resource={this.state.resource}></DescribeResource>
                       : ""
                     }
                     {this.state.currentTab === "files"

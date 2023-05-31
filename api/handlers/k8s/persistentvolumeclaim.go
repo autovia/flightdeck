@@ -23,7 +23,7 @@ func PersistentVolumeClaim(app *S.App, c *S.Client, w http.ResponseWriter, r *ht
 	}
 	pvc.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, pvc)
+	return S.RespondFormat(r, w, http.StatusOK, pvc)
 }
 
 func PersistentVolumeClaimPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

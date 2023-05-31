@@ -23,7 +23,7 @@ func RoleBindingHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.
 	}
 	rb.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, rb)
+	return S.RespondFormat(r, w, http.StatusOK, rb)
 }
 
 func NamespaceRoleBindingListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

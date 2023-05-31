@@ -23,8 +23,7 @@ func JobHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request)
 	}
 	job.ObjectMeta.ManagedFields = nil
 
-	S.RespondYAML(w, http.StatusOK, job)
-	return nil
+	return S.RespondFormat(r, w, http.StatusOK, job)
 }
 
 func JobPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

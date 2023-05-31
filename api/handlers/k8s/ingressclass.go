@@ -23,8 +23,7 @@ func IngressClassHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http
 	}
 	netpol.ObjectMeta.ManagedFields = nil
 
-	S.RespondYAML(w, http.StatusOK, netpol)
-	return nil
+	return S.RespondFormat(r, w, http.StatusOK, netpol)
 }
 
 func IngressClassListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

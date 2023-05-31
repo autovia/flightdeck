@@ -23,7 +23,7 @@ func DaemonSetHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Re
 	}
 	ds.ObjectMeta.ManagedFields = nil
 
-	S.RespondYAML(w, http.StatusOK, ds)
+	S.RespondFormat(r, w, http.StatusOK, ds)
 	return nil
 }
 

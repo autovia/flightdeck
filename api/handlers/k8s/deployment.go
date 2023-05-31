@@ -23,7 +23,7 @@ func DeploymentHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.R
 	}
 	deploy.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, deploy)
+	return S.RespondFormat(r, w, http.StatusOK, deploy)
 }
 
 func DeploymentPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

@@ -23,7 +23,7 @@ func ServiceAccountHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *ht
 	}
 	sa.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, sa)
+	return S.RespondFormat(r, w, http.StatusOK, sa)
 }
 
 func ServiceAccountPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

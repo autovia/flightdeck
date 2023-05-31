@@ -23,7 +23,7 @@ func ClusterRoleBindingHandler(app *S.App, c *S.Client, w http.ResponseWriter, r
 	}
 	role.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, role)
+	return S.RespondFormat(r, w, http.StatusOK, role)
 }
 
 func ClusterRoleBindingListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

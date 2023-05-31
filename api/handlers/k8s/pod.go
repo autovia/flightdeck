@@ -30,11 +30,11 @@ func PodHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request)
 	}
 	pod.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, pod)
+	return S.RespondFormat(r, w, http.StatusOK, pod)
 }
 
 func PodVolumeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
-	url := S.GetRequestParams(r, "/api/v1/vol/")
+	url := S.GetRequestParams(r, "/api/v1/pod/vol/")
 	log.Printf("PodVolumeHandler url: %v", url)
 
 	pod, err := c.Clientset.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
@@ -43,7 +43,7 @@ func PodVolumeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Re
 	}
 	for _, volume := range pod.Spec.Volumes {
 		if volume.Name == url.Subresource {
-			S.RespondYAML(w, http.StatusOK, volume)
+			S.RespondFormat(r, w, http.StatusOK, volume)
 			break
 		}
 	}
@@ -51,7 +51,7 @@ func PodVolumeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Re
 }
 
 func PodFilesystemHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
-	url := S.GetRequestParams(r, "/api/v1/fs/")
+	url := S.GetRequestParams(r, "/api/v1/pod/fs/")
 	log.Printf("PodFilesystemHandler url: %v", url)
 
 	container, err := c.GetContainer(url)
@@ -79,7 +79,7 @@ func PodFilesystemHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *htt
 }
 
 func PodFileOpenHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
-	url := S.GetRequestParams(r, "/api/v1/file/")
+	url := S.GetRequestParams(r, "/api/v1/pod/file/")
 	log.Printf("PodFileOpenHandler url: %v", url)
 
 	container, err := c.GetContainer(url)
@@ -103,7 +103,7 @@ func PodFileOpenHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.
 }
 
 func PodLogsHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
-	url := S.GetRequestParams(r, "/api/v1/logs/")
+	url := S.GetRequestParams(r, "/api/v1/pod/logs/")
 	log.Printf("PodLogsHandler url: %v", url)
 
 	var request *rest.Request

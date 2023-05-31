@@ -33,7 +33,7 @@ class FilesystemBrowser extends Component {
     };
 
     fetchFile(path) {
-      const url = '/api/v1/file/' + this.props.url + path;
+      const url = '/api/v1/pod/file/' + this.props.url + path;
       fetch(url)
       .then(res => res)
       .then(res => {
@@ -55,9 +55,9 @@ class FilesystemBrowser extends Component {
     fetchUrl(path) {
       var url;
       if (path != "") {
-        url = '/api/v1/fs/' + this.props.url + path;
+        url = '/api/v1/pod/fs/' + this.props.url + path;
       } else {
-        url = '/api/v1/fs/' + this.props.url;
+        url = '/api/v1/pod/fs/' + this.props.url;
       }
       fetch(url)
       .then(res => res)

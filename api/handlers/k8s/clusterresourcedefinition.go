@@ -27,7 +27,7 @@ func CustomResourceDefinitionHandler(app *S.App, c *S.Client, w http.ResponseWri
 	}
 	crd.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, crd)
+	return S.RespondFormat(r, w, http.StatusOK, crd)
 }
 
 func CustomResourceDefinitionListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

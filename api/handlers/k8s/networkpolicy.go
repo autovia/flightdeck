@@ -23,8 +23,7 @@ func NetworkPolicyHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *htt
 	}
 	netpol.ObjectMeta.ManagedFields = nil
 
-	S.RespondYAML(w, http.StatusOK, netpol)
-	return nil
+	return S.RespondFormat(r, w, http.StatusOK, netpol)
 }
 
 func NamespaceNetworkPolicyListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

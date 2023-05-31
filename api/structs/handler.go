@@ -190,6 +190,13 @@ func RespondText(w http.ResponseWriter, status int, payload string) error {
 	return nil
 }
 
+func RespondFormat[T any](r *http.Request, w http.ResponseWriter, status int, payload T) error {
+	if r.URL.Query().Get("format") == "json" {
+		return RespondJSON(w, http.StatusOK, payload)
+	}
+	return RespondYAML(w, http.StatusOK, payload)
+}
+
 func RespondYAML[T any](w http.ResponseWriter, status int, payload T) error {
 	yaml, err := yaml.Marshal(payload)
 	if err != nil {

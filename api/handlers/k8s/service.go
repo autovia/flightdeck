@@ -24,7 +24,7 @@ func ServiceHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Requ
 	}
 	svc.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, svc)
+	return S.RespondFormat(r, w, http.StatusOK, svc)
 }
 
 func NamespaceServiceListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

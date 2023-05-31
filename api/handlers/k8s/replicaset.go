@@ -23,7 +23,7 @@ func ReplicaSetHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.R
 	}
 	rs.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, rs)
+	return S.RespondFormat(r, w, http.StatusOK, rs)
 }
 
 func ReplicaSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

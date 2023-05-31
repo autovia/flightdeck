@@ -23,8 +23,7 @@ func EventHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Reques
 	}
 	role.ObjectMeta.ManagedFields = nil
 
-	S.RespondYAML(w, http.StatusOK, role)
-	return nil
+	return S.RespondFormat(r, w, http.StatusOK, role)
 }
 
 func NamespaceEventListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

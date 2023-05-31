@@ -23,8 +23,7 @@ func CronJobHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Requ
 	}
 	cronjob.ObjectMeta.ManagedFields = nil
 
-	S.RespondYAML(w, http.StatusOK, cronjob)
-	return nil
+	return S.RespondFormat(r, w, http.StatusOK, cronjob)
 }
 
 func CronJobPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

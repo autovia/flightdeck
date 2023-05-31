@@ -23,7 +23,7 @@ func StorageClassHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http
 	}
 	sc.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, sc)
+	return S.RespondFormat(r, w, http.StatusOK, sc)
 }
 
 func StorageClassListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {

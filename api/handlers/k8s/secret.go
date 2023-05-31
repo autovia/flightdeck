@@ -23,7 +23,7 @@ func SecretHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Reque
 	}
 	secret.ObjectMeta.ManagedFields = nil
 
-	return S.RespondYAML(w, http.StatusOK, secret)
+	return S.RespondFormat(r, w, http.StatusOK, secret)
 }
 
 func SecretPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
