@@ -177,7 +177,7 @@ class Nodes extends Component {
           className="bg-sky-50"
         >
           <Panel position="top-left" className="w-full p-0 m-0">
-          <Nav params={this.props.params} />
+          <Nav params={this.props.params} onClick={this.openListOverlay} />
           </Panel>
           <Controls />
           <MiniMap />

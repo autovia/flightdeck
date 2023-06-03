@@ -11,7 +11,7 @@ function ServiceNode({ data }) {
           <img src={'/static/k8s/' + data.kind + '-256.png'} />
         </div>
         <div className="ml-2">
-          <div className="text-lg">{data.label}</div>
+          <div className="text-lg [word-break:break-word]">{data.label}</div>
         </div>
       </div>
     </div>

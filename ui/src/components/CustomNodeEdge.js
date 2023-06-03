@@ -13,7 +13,7 @@ function PodNodeEdge({ data }) {
           <img src={'/static/k8s/' + data.kind + '-256.png'} />
         </div>
         <div className="ml-2">
-          <div className="text-s">{data.label}</div>
+          <div className="text-s [word-break:break-word]">{data.label}</div>
         </div>
         
       </div>

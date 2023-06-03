@@ -354,23 +354,39 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 }
 
 func NamespacePodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
-	url := S.GetRequestParams(r, "/api/v1/namespace/pod/")
-	log.Printf("NamespacePodListHandler url: %v", url)
+	log.Printf("NamespacePodListHandler url: %v", r.URL.Query())
+	namespace := r.URL.Query().Get("namespace")
+	filter := r.URL.Query().Get("filter")
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
+	var node S.Node
+	var podList *corev1.PodList
+	var err error
 
-	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
-	if err != nil {
-		return S.RespondError(err)
-	}
-	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
+	if namespace == "all" {
+		node = g.AddNode("ns", "all", "all", S.NodeOptions{Type: "namespace", Group: true})
 
-	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return S.RespondError(err)
+		podList, err = c.Clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+		if err != nil {
+			return S.RespondError(err)
+		}
+	} else {
+		ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), namespace, metav1.GetOptions{})
+		if err != nil {
+			return S.RespondError(err)
+		}
+		node = g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
+
+		podList, err = c.Clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+		if err != nil {
+			return S.RespondError(err)
+		}
 	}
+
 	for _, pod := range podList.Items {
-		g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "pod", ParentNode: node, Extent: "parent"})
+		if strings.Contains(pod.ObjectMeta.Name, filter) {
+			g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "pod", ParentNode: node, Extent: "parent"})
+		}
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)

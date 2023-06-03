@@ -54,7 +54,7 @@ func InitRoutes(app *S.App) {
 	// 	PodsGetter
 	app.Router.Handle("/api/v1/pod/", S.KubeClient{app, k8s.PodHandler})
 	app.Router.Handle("/api/v1/graph/pod/", S.KubeClient{app, k8s.PodGraphHandler})
-	app.Router.Handle("/api/v1/namespace/pod/", S.KubeClient{app, k8s.NamespacePodListHandler})
+	app.Router.Handle("/api/v1/pod", S.KubeClient{app, k8s.NamespacePodListHandler})
 
 	// 	PodTemplatesGetter
 	// 	ReplicationControllersGetter

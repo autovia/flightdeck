@@ -22,6 +22,7 @@ func NamespaceListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *htt
 	if err != nil {
 		return S.RespondError(err)
 	}
+	g.AddNode("ns", "all", "all", S.NodeOptions{Type: "namespace", Draggable: false, Connectable: false})
 	for _, ns := range nsList.Items {
 		// SLOW
 		// podList, err := app.Client.CoreV1().Pods(ns.ObjectMeta.Name).List(context.TODO(), metav1.ListOptions{})

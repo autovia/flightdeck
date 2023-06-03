@@ -25,8 +25,9 @@ type App struct {
 	Client         *Client
 	AuthManager    AuthManager
 	// config
-	PodLogTailLines   *int64
-	DefaultConfigName *string
+	PodLogTailLines      *int64
+	DefaultConfigName    *string
+	TokenExpirationHours *int64
 }
 
 func (app *App) LoadKubeContext(context string) error {
@@ -147,9 +148,15 @@ func (app *App) buildConfigFromToken(token string) (*rest.Config, error) {
 // Use configmap
 func (app *App) LoadConfig() {
 	// PodLogOptions, the number of lines from the end of the logs to show
-	var lines int64 = 1024
-	app.PodLogTailLines = &lines
+	var podLogTailLines int64 = 1024
+	app.PodLogTailLines = &podLogTailLines
 
-	var configname string = "kubernetes"
-	app.DefaultConfigName = &configname
+	// Context for K8s client
+	var defaultConfigName string = "kubernetes"
+	app.DefaultConfigName = &defaultConfigName
+
+	// jwtToken which contains the K8s token (default expires after 1h)
+	// Can be changed with "--duration=12h" when using "kubectl create token"
+	var tokenExpirationHours int64 = 12
+	app.TokenExpirationHours = &tokenExpirationHours
 }

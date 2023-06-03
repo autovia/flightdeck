@@ -8,7 +8,8 @@ import dagre from 'dagre';
 import CustomNodeEdge from './CustomNodeEdge';
 import CustomNode from './CustomNode';
 import {nodeTypes} from './NodeTypes';
-import Overlay from './Overlay';
+import ResourceOverlay from './ResourceOverlay';
+import ListOverlay from './ListView';
 import Nav from './Nav';
 import { XMarkIcon, ChevronDoubleDownIcon } from '@heroicons/react/24/outline'
 
@@ -27,8 +28,10 @@ class Pod extends Component {
       edges: [],
       namespaces: [],
       pods: [],
-      overlay: false,
-      data: {},
+      resourceOverlay: false,
+      listOverlay: false,
+      listOverlayMeta: {},
+      data: [],
       params: {},
       menu: false
     }
@@ -74,7 +77,7 @@ class Pod extends Component {
       }));
     });
 
-    fetch('/api/v1/namespace/pod/' + this.props.params.namespace)
+    fetch('/api/v1/pods?namespace=' + this.props.params.namespace)
       .then(res => res.json())
       .then(d => {
         console.log('/api/v1/namespace/', d);
@@ -136,9 +139,22 @@ class Pod extends Component {
     window.open("/", "_self");
   }
 
-  onDialogClose = (e) => {
+  closeResourceOverlay = (e) => {
     this.setState((state, props) => ({
-      overlay: !this.state.overlay
+      resourceOverlay: !this.state.resourceOverlay
+    }));
+  }
+
+  closeListOverlay = (e) => {
+    this.setState((state, props) => ({
+      listOverlay: !this.state.listOverlay
+    }));
+  }
+
+  openListOverlay = (e) => {
+    this.setState((state, props) => ({
+      listOverlay: !this.state.listOverlay,
+      listOverlayMeta: {kind: e.id, label: e.name},
     }));
   }
 
@@ -146,14 +162,14 @@ class Pod extends Component {
     console.log(node)
     if (node.data.kind === "vol") {
       this.setState((state, props) => ({
-        overlay: !this.state.overlay,
+        resourceOverlay: !this.state.resourceOverlay,
         //url: '/api/v1/' + node.data.kind + '/'  + this.props.params.namespace + '/' + this.props.params.pod + '/'  + node.data.label,
         params: this.props.params,
         data: node.data
       }));
     } else {
       this.setState((state, props) => ({
-        overlay: !this.state.overlay,
+        resourceOverlay: !this.state.resourceOverlay,
         //url: '/api/v1/' + node.data.kind + '/'  + this.props.params.namespace + '/' + node.data.label,
         params: this.props.params,
         data: node.data
@@ -201,13 +217,14 @@ class Pod extends Component {
           className="bg-sky-50"
         >
           <Panel position="top-left" className="w-full p-0 m-0">
-            <Nav params={this.props.params} />
+            <Nav params={this.props.params} onClick={this.openListOverlay} />
           </Panel>
           <Controls />
           <MiniMap />
           <Background variant="dots" gap={12} size={1} />
         </ReactFlow>
-        {this.state.overlay ? <Overlay data={this.state.data} params={this.state.params} close={this.onDialogClose} /> : ""}
+        {this.state.resourceOverlay ? <ResourceOverlay data={this.state.data} params={this.state.params} close={this.closeResourceOverlay} /> : ""}
+        {this.state.listOverlay ? <ListOverlay data={this.state.data} meta={this.state.listOverlayMeta} close={this.closeListOverlay} /> : ""}
       </div>
     );
   }

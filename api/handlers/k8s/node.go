@@ -15,21 +15,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NodeListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
-	log.Print("NodeListHandler")
-
-	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-
-	nodeList, err := c.Clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return S.RespondError(err)
-	}
-	for _, node := range nodeList.Items {
-		g.AddNode("node", string(node.ObjectMeta.UID), node.ObjectMeta.Name, S.NodeOptions{Type: "node", Draggable: false, Connectable: false})
-	}
-	return S.RespondJSON(w, http.StatusOK, g)
-}
-
 func NodeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	url := strings.Split(strings.Replace(r.URL.Path, "/api/v1/node/", "", -1), "/")
 	log.Printf("NodeHandler url: %v", url)
@@ -54,4 +39,15 @@ func NodeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)
+}
+
+func NodeListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
+	log.Print("NodeListHandler")
+
+	nodeList, err := c.Clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return S.RespondError(err)
+	}
+
+	return S.RespondJSON(w, http.StatusOK, nodeList.Items)
 }

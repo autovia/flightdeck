@@ -29,14 +29,10 @@ func StorageClassHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http
 func StorageClassListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	log.Print("StorageClassListHandler")
 
-	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-
 	scList, err := c.Clientset.StorageV1().StorageClasses().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
-	for _, sc := range scList.Items {
-		g.AddNode("sc", string(sc.ObjectMeta.UID), sc.ObjectMeta.Name, S.NodeOptions{Type: "sc", Draggable: false, Connectable: false})
-	}
-	return S.RespondJSON(w, http.StatusOK, g)
+
+	return S.RespondJSON(w, http.StatusOK, scList.Items)
 }

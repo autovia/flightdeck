@@ -1,98 +1,91 @@
 // Copyright (c) Autovia GmbH
 // SPDX-License-Identifier: Apache-2.0
 
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, Component } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { UserCircleIcon } from '@heroicons/react/20/solid'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { UserCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import {useParams} from 'react-router-dom';
 import MenuSelect from './MenuSelect';
 import MenuSelectResource from './MenuSelectResource';
 import MenuSelectCluster from './MenuSelectCluster';
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+import * as k8s from './config/k8s';
 
 const userNavigation = [
   { name: 'Sign out', href: '#' },
 ]
 
-const resources = [
-  { id: "cm", name: 'Config Maps', type: 'config' },
-  { id: "cronjob", name: 'Cron Jobs', type: 'workload' },
-  { id: "ds", name: 'DaemonSet', type: 'workload' },
-  { id: "deploy", name: 'Deployments', type: 'workload' },
-  { id: "ev", name: 'Events', type: 'cluster' },
-  { id: "ing", name: 'Ingresses', type: 'service' },
-  { id: "job", name: 'Jobs', type: 'workload' },
-  { id: "netpol", name: 'Network Policies', type: 'cluster' },
-  { id: "pvc", name: 'Persistent Volume Claims', type: 'storage' },
-  { id: "pod", name: 'Pods', type: 'workload'}, // default
-  { id: "rs", name: 'Replica Sets', type: 'workload' },
-  { id: "rc", name: 'Replication Controllers', type: 'workload' },
-  { id: "role", name: 'Roles', type: 'cluster' },
-  { id: "rb", name: 'Role Bindings', type: 'cluster' },
-  { id: "secret", name: 'Secrets', type: 'config' },
-  { id: "svc", name: 'Services', type: 'service' },
-  { id: "sa", name: 'Service Accounts', type: 'cluster' },
-  { id: "sts", name: 'Stateful Sets', type: 'workload' }
-]
+class Nav extends Component {
 
-const clusterResources = [
-  { id: "c-role", name: 'Cluster Roles', type: 'cluster' },
-  { id: "crb", name: 'Cluster Role Bindings', type: 'cluster' },
-  { id: "crd", name: 'Custom Resource Definitions', type: 'cluster' },
-  { id: "ic", name: 'Ingress Classes', type: 'service' },
-  { id: "no", name: 'Nodes', type: 'cluster' }, // default
-  { id: "pv", name: 'Persistent Volumes', type: 'storage' },
-  { id: "sc", name: 'Storage Classes', type: 'storage' }
-]
+  constructor(props) {
+    super(props);
+    this.state = {
+      namespace: props.namespace,
+      namespaces: [],
+      resource: {}, 
+      clusterResource: {}
+    }
+  }
 
-export default function Nav({params}) {
-  const [namespace, setNamespace] = useState({});
-  const [namespaces, setNamespaces] = useState([]);
-  const [resource, setResource] = useState({});
-  const [clusterResource, setClusterResource] = useState({});
-
-  useEffect(() => {
-    console.log("params", params);
+  componentDidMount() {
+    console.log("Nav props", this.props);
     fetch('/api/v1/namespaces')
     .then(res => res.json())
     .then(d => {
       console.log('/api/v1/namespaces', d);
       const namespaces = d.nodes.map((n) => ({id: n.id, name: n.data.label}));
       if (d.nodes.length > 0) {
-        setNamespaces(namespaces);
-        setNamespace(namespaces.find((e) => e.name === params.namespace));
+        this.setState((state, props) => ({
+          namespace: namespaces.find((e) => e.name === this.props.params.namespace),
+          namespaces: namespaces
+        }));
       }
     });
-    setResource(resources.find((e) => e.id === params.kind));
-    setClusterResource(clusterResources.find((e) => e.id === params.kind));
-  }, []);
+    this.setState((state, props) => ({
+      resource: k8s.resources.find((e) => e.id === this.props.params.kind),
+      clusterResource: k8s.clusterResources.find((e) => e.id === this.props.params.kind)
+    }));
+  }
 
-  const changeNamespace = (namespace) => {
+  classNames(...classes) {
+    return classes.filter(Boolean).join(' ')
+  }
+
+  changeNamespace = (namespace) => {
     console.log('nodes changeNamespace: ', namespace);
     //setNamespace(namespace);
     window.open("/namespace/" + namespace.name + "/pod", "_self");
   } 
 
-  const changeResource = (resource) => {
-    console.log('nodes changeResource: ', resource, namespace);
+  changeResource = (resource) => {
+    console.log('nodes changeResource: ', resource, this.state.namespace);
     //setResource(resource);
-    if (namespace == undefined) {
-      window.open("/namespace/" + namespaces[0].name + "/" + resource.id, "_self");
+    if (this.state.namespace == undefined) {
+      window.open("/namespace/" + this.state.namespaces[0].name + "/" + resource.id, "_self");
     } else {
-      window.open("/namespace/" + namespace.name + "/" + resource.id, "_self"); 
+      window.open("/namespace/" + this.state.namespace.name + "/" + resource.id, "_self"); 
     }
   }
 
-  const changeClusterResource = (cr) => {
+  changeClusterResource = (cr) => {
     console.log('nodes changeClusterResource: ', cr);
     //setClusterResource(cr);
-    window.open("/cluster/" + cr.id, "_self");
+    this.props.onListClick(cr);
   }
 
-  const signOut = () => {
+  clearSearch = (event) => {
+    if (event.target.value === "") {
+      this.props.close();
+    }
+  }
+
+  handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      console.log("event.target.value", event.target.value);
+      this.props.onSearchClick({filter: event.target.value});
+    }
+  }
+
+  signOut = () => {
     fetch('/api/v1/auth/reset', {
       method: 'GET',
     })
@@ -102,7 +95,8 @@ export default function Nav({params}) {
     });
   }
 
-  return (
+  render() {
+    return (
     <Disclosure as="nav" className="bg-white shadow">
       {({ open }) => (
         <>
@@ -110,13 +104,31 @@ export default function Nav({params}) {
             <div className="flex h-16 justify-between">
               <div className="flex px-2 lg:px-0">
                 <div className="flex flex-shrink-0 items-center">
-                  <MenuSelect selected={namespace || null} setSelected={changeNamespace} items={namespaces} init="Namespace" />
-                  <MenuSelectResource selected={resource || null} setSelected={changeResource} items={resources} init="Resource" />
-                  <MenuSelectCluster selected={clusterResource || null} setSelected={changeClusterResource} items={clusterResources} init="Cluster" />
+                  <MenuSelect selected={this.state.namespace || null} setSelected={this.changeNamespace} items={this.state.namespaces} init="Namespace" />
+                  <MenuSelectResource selected={this.state.resource || null} setSelected={this.changeResource} items={k8s.resources} init="Resource" />
+                  <MenuSelectCluster selected={this.clusterResource || null} setSelected={this.changeClusterResource} items={k8s.clusterResources} init="Cluster" />
                 </div>
               </div>
               <div className="flex flex-1 items-center justify-center px-2 lg:ml-6 lg:justify-end">
-
+                <div className="w-full max-w-lg lg:max-w-xs">
+                  <label htmlFor="search" className="sr-only">
+                    Search
+                  </label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
+                    <input
+                      id="search"
+                      name="search"
+                      className="block w-full rounded-md border-0 bg-white py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                      placeholder={this.props.filter || "Search"}
+                      type="search"
+                      onKeyDown={this.handleKeyDown}
+                      onChange={this.clearSearch}
+                    />
+                  </div>
+                </div>
               </div>
               <div className="flex items-center lg:hidden">
 
@@ -147,8 +159,8 @@ export default function Nav({params}) {
                         {({ active }) => (
                           <a
                              href="#"
-                             onClick={signOut}
-                             className={classNames(
+                             onClick={this.signOut}
+                             className={this.classNames(
                               active ? 'bg-gray-100' : '',
                               'block px-4 py-2 text-sm text-gray-700'
                             )}
@@ -167,5 +179,12 @@ export default function Nav({params}) {
         </>
       )}
     </Disclosure>
-  )
+    );
+  }
 }
+
+function withParams(Component) {
+  return (props) => <Component {...props} params={useParams()} />;
+}
+
+export default withParams(Nav);

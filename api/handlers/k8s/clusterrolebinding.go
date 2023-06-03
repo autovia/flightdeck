@@ -29,14 +29,10 @@ func ClusterRoleBindingHandler(app *S.App, c *S.Client, w http.ResponseWriter, r
 func ClusterRoleBindingListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	log.Print("ClusterRoleBindingListHandler")
 
-	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-
 	crbList, err := c.Clientset.RbacV1().ClusterRoleBindings().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
-	for _, crb := range crbList.Items {
-		g.AddNode("crb", string(crb.ObjectMeta.UID), crb.ObjectMeta.Name, S.NodeOptions{Type: "crb", Draggable: false, Connectable: false})
-	}
-	return S.RespondJSON(w, http.StatusOK, g)
+
+	return S.RespondJSON(w, http.StatusOK, crbList.Items)
 }

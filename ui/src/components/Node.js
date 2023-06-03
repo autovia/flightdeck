@@ -6,6 +6,7 @@ import ReactFlow, { ConnectionLineType, Panel, Controls, Background, MiniMap} fr
 import {useParams} from 'react-router-dom';
 import PodNode from './PodNode';
 import CustomNode from './CustomNode';
+import ListOverlay from './ListView';
 import Nav from './Nav';
 //import 'reactflow/dist/style.css';
 
@@ -27,7 +28,9 @@ class Node extends Component {
     this.state = {
       nodes: [],
       edges: [],
-      namespaces: []
+      namespaces: [],
+      listOverlay: false,
+      listOverlayMeta: {}
     }
   }
 
@@ -74,6 +77,19 @@ class Node extends Component {
         window.open("/namespace/" + node.data.namespace + "/pod/" + node.data.label, "_self");
     }
   };
+
+  openListOverlay = (e) => {
+    this.setState((state, props) => ({
+      listOverlay: !this.state.listOverlay,
+      listOverlayMeta: {kind: e.id, label: e.name},
+    }));
+  }
+
+  closeListOverlay = (e) => {
+    this.setState((state, props) => ({
+      listOverlay: !this.state.listOverlay
+    }));
+  }
 
   goHome() {
     window.open("/", "_self");
@@ -142,12 +158,13 @@ class Node extends Component {
           className="bg-sky-50"
         >
           <Panel position="top-left" className="w-full p-0 m-0">
-            <Nav params={this.props.params} />
+            <Nav params={this.props.params} onClick={this.openListOverlay} />
           </Panel>
           <Controls />
           <MiniMap />
           <Background variant="dots" gap={12} size={1} />
         </ReactFlow>
+        {this.state.listOverlay ? <ListOverlay data={this.state.data} meta={this.state.listOverlayMeta} close={this.closeListOverlay} /> : ""}
       </div>
     );
   }

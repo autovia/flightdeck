@@ -29,14 +29,10 @@ func IngressClassHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http
 func IngressClassListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	log.Print("IngressClassListHandler")
 
-	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-
 	icList, err := c.Clientset.NetworkingV1().IngressClasses().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
-	for _, ic := range icList.Items {
-		g.AddNode("ing", string(ic.ObjectMeta.UID), ic.ObjectMeta.Name, S.NodeOptions{Type: "ic", Draggable: false, Connectable: false})
-	}
-	return S.RespondJSON(w, http.StatusOK, g)
+
+	return S.RespondJSON(w, http.StatusOK, icList.Items)
 }

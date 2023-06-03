@@ -42,7 +42,7 @@ func LoginTokenHandler(app *S.App, w http.ResponseWriter, r *http.Request) error
 		return S.RespondError(err)
 	}
 
-	expiration := time.Now().Add(2 * time.Hour)
+	expiration := time.Now().Add(time.Duration(*app.TokenExpirationHours) * time.Hour)
 
 	if tokenReview.Status.Authenticated {
 		claims := &S.JwtCustomClaims{

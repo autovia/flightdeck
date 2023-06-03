@@ -9,7 +9,7 @@ import FilesystemBrowser from './FilesystemBrowser';
 import DescribeResource from './DescribeResource';
 
 //export default function Overlay({ data, params, close }) {
-class Overlay extends Component {
+class ResourceOverlay extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -224,4 +224,4 @@ class Overlay extends Component {
   }
 }
 
-export default Overlay;
+export default ResourceOverlay;

@@ -31,6 +31,8 @@ kubectl -n flightdeck create token admin-user
 kubectl -n flightdeck port-forward pod/<flightdeck-podname> 3000:3000
 ```
 
+Note: The token expires after one hour. Use e.g. `--duration=12h` to change the expiration time to 12 hours.
+
 Now open your browser `localhost:3000` and copy the bearer token and paste it into the `Bearer token` field on the login screen.
 
 Click the `Sign in` button and that's it. You are now logged in as an admin.

@@ -29,15 +29,10 @@ func PersistentVolumeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *
 func PersistentVolumeListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
 	log.Print("PersistentVolumeListHandler")
 
-	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-
 	pvList, err := c.Clientset.CoreV1().PersistentVolumes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
-	for _, pv := range pvList.Items {
-		g.AddNode("pv", string(pv.ObjectMeta.UID), pv.ObjectMeta.Name, S.NodeOptions{Type: "pv", Draggable: false, Connectable: false})
-	}
 
-	return S.RespondJSON(w, http.StatusOK, g)
+	return S.RespondJSON(w, http.StatusOK, pvList.Items)
 }

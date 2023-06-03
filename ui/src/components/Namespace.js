@@ -7,21 +7,25 @@ import {useParams} from 'react-router-dom';
 import PodNode from './PodNode';
 import CustomNode from './CustomNode';
 import {nodeTypes} from './NodeTypes';
+import ListView from './ListView';
+import SearchView from './SearchView';
 import Nav from './Nav';
 //import 'reactflow/dist/style.css';
 
 //import './index.css';
 
 class Namespace extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
       nodes: [],
       edges: [],
       namespaces: [], 
-      namespace: this.props.params.namespace === undefined ? "default" : this.props.params.namespace,
-      kind: this.props.params.kind === undefined ? "pod" : this.props.params.kind
+      namespace: typeof this.props.params.namespace === "undefined" ? "default" : this.props.params.namespace,
+      kind: this.props.params.kind === undefined ? "pod" : this.props.params.kind,
+      list: {view: false, kind: "", label: ""},
+      search: {view: false, filter: ""},
+      data: []
     }
   }
 
@@ -47,8 +51,16 @@ class Namespace extends Component {
         }));
       }
     });
+    this.getResources();
+  }
 
-    fetch('/api/v1/namespace/' + this.state.kind + "/" + this.state.namespace, {
+  getResources(filter = "") {
+    var url = '/api/v1/' + this.state.kind + "?namespace=" + this.state.namespace;
+    if (filter != "") {
+      url += "&filter=" + filter;
+    }
+
+    fetch(url, {
       method: 'GET',
       headers: {
           'Accept': 'application/json',
@@ -58,14 +70,6 @@ class Namespace extends Component {
     .then(res => res.json())
     .then(d => {
       console.log('/api/v1/namespace/', d);
-      // d.nodes = d.nodes.map(node => {
-      //   const newLabel = (<div className="on-hover">
-      //     {process(node.data.label)}
-      //     {node.data.pathMappings && <div className="on-hover-child"><div>pathMappings:</div>{process(node.data.pathMappings)}</div>}
-      //   </div>);
-      //   return { ...node, data: { ...node.data, label: newLabel } };
-      // });
-
       const {nodes: layoutedNodes, edges: layoutedEdges} = this.getLayoutedGroup(d.nodes, d.edges);
       this.setState((state, props) => ({
         nodes: layoutedNodes,
@@ -73,6 +77,31 @@ class Namespace extends Component {
         namespaces: state.namespaces
       }));
     });
+  }
+
+  openListView = (e) => {
+    this.setState((state, props) => ({
+      list: {view: true, kind: e.id, label: e.name},
+    }));
+  }
+
+  closeListView = (e) => {
+    this.setState((state, props) => ({
+      list: {view: false}
+    }));
+  }
+
+  openSearchView = (e) => {
+    this.setState((state, props) => ({
+      search: {view: e.filter === "" ? false : true, filter: e.filter}
+    }));
+  }
+
+  closeSearchView = (e) => {
+    console.log("closeSearchView", e);
+    this.setState((state, props) => ({
+      search: {view: false, filter: ""}
+    }));
   }
 
   onNodeClick = (e, node) => {
@@ -83,11 +112,12 @@ class Namespace extends Component {
     window.open("/", "_self");
   }
 
-  // onNamespaceChange(e) {
-  //   window.open("/namespace/" + e.target.value + "/pod", "_self");
-  // }
-
-  getLayoutedGroup(nodes, edges, columns = 5) {
+  getLayoutedGroup(nodes, edges, columns) {
+    if (nodes.length > 25) {
+      columns = 10
+    } else {
+      columns = 5
+    }
     var i = 0;
     var xoffset = 0;
     var yoffset = 0;
@@ -117,7 +147,7 @@ class Namespace extends Component {
       //console.log(node.id, node.position.x, xoffset, node.position.y, yoffset);
       return node;
     });
-    nodes[0].style.width = xmax + 350;
+    nodes[0].style.width = xmax + 375;
     nodes[0].style.height = ymax + 200;
     nodes[0].type = "default";
     return {nodes, edges};
@@ -132,7 +162,12 @@ class Namespace extends Component {
   render() {
     return (
       <div style={{ width: '100vw', height: '100vh' }}>
-        <ReactFlow
+        <Nav params={this.props.params} onListClick={this.openListView} filter={this.state.search.filter} close={this.closeSearchView} onSearchClick={this.openSearchView} />
+        {this.state.list.view 
+        ? <ListView data={this.state.data} meta={this.state.list} close={this.closeListView} /> 
+        : this.state.search.view
+          ? <SearchView filter={this.state.search.filter} close2={this.closeSearchView} /> 
+          : <ReactFlow
           nodes={this.state.nodes}
           edges={this.state.edges}
           //onNodesChange={onNodesChange}
@@ -145,13 +180,13 @@ class Namespace extends Component {
           fitView
           className="bg-sky-50"
         >
-          <Panel position="top-left" className="w-full p-0 m-0">
-            <Nav params={this.props.params} />
+          <Panel position="top-left" className="w-full p-0 m-0">      
           </Panel>
           <Controls />
           <MiniMap />
           <Background variant="dots" gap={12} size={1} />
         </ReactFlow>
+      }  
       </div>
     );
   }
