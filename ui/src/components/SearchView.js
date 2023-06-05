@@ -3,7 +3,7 @@
 
 import {Component} from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import * as k8s from './config/k8s';
+import * as k8s from './utils/k8s';
 
 class SearchView extends Component {
   constructor(props) {

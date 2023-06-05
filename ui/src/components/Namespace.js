@@ -4,16 +4,19 @@
 import React, {Component} from 'react';
 import ReactFlow, { ConnectionLineType, Panel, Controls, Background, MiniMap} from 'reactflow';
 import {useParams} from 'react-router-dom';
-import PodNode from './PodNode';
-import CustomNode from './CustomNode';
 import {nodeTypes} from './NodeTypes';
 import ListView from './ListView';
 import SearchView from './SearchView';
+import ResourceOverlay from './ResourceOverlay';
 import Nav from './Nav';
-//import 'reactflow/dist/style.css';
+import * as k8s from './utils/k8s';
+import {layout} from './utils/graph';
+
+import 'reactflow/dist/style.css';
+import './Namespace.css';
 
 //import './index.css';
-
+    
 class Namespace extends Component {
   constructor(props) {
     super(props);
@@ -21,16 +24,21 @@ class Namespace extends Component {
       nodes: [],
       edges: [],
       namespaces: [], 
-      namespace: typeof this.props.params.namespace === "undefined" ? "default" : this.props.params.namespace,
-      kind: this.props.params.kind === undefined ? "pod" : this.props.params.kind,
       list: {view: false, kind: "", label: ""},
       search: {view: false, filter: ""},
-      data: []
+      overlay: {view: false, kind: "", label: ""},
+      data: [],
+      params: {
+        kind: typeof props.params.kind === "undefined" ? "pod" : props.params.kind, 
+        namespace: typeof props.params.namespace === "undefined" ? "default" : props.params.namespace,
+        cluster: typeof props.params.cluster === "undefined" ? "" : props.params.cluster,
+        resource: typeof props.params.resource === "undefined" ? "" : props.params.resource
+      }
     }
   }
 
   componentDidMount() {
-    console.log("this.props", this.props);
+    console.log("Namespace path", window.location.pathname.split("/"));
     
     fetch('/api/v1/namespaces', {
       method: 'GET',
@@ -45,17 +53,56 @@ class Namespace extends Component {
       const namespaces = d.nodes.map((n) => n.data.label);
       if (namespaces.length > 0) {
         this.setState((state, props) => ({
-          nodes: state.nodes,
-          edges: state.edges,
+          // nodes: state.nodes,
+          // edges: state.edges,
           namespaces: namespaces
         }));
       }
     });
-    this.getResources();
+    switch(true) {
+      case this.isView("cluster"):
+        this.openListView({id: this.props.params.cluster, name: k8s.clusterResources.filter((f) => f.id === this.props.params.cluster)[0].name});
+        break;
+      case this.isView("node"):
+        this.getGroup('/api/v1/node/' + this.props.params.node);
+        break;
+      case this.isView("resource"):
+        this.getGraph('/api/v1/graph/' + this.props.params.kind + '/' + this.props.params.namespace + '/' + this.props.params.resource);
+        break;
+      default:
+        this.getGroup('/api/v1/' + this.state.params.kind + "?namespace=" + this.state.params.namespace);
+    } 
   }
 
-  getResources(filter = "") {
-    var url = '/api/v1/' + this.state.kind + "?namespace=" + this.state.namespace;
+  isView(name) {
+    let path = window.location.pathname.split("/");
+    return path.length > 1 && path[1] === name ? true : false;
+  }
+
+  getGraph(url) {
+    fetch(url)
+    .then(res => res.json())
+    .then(d => {
+      console.log("getGraph", url, d);
+      // d.nodes = d.nodes.map(node => {
+      //   const newLabel = (<div className="on-hover">
+      //     {process(node.data.label)}
+      //     {node.data.pathMappings && <div className="on-hover-child"><div>pathMappings:</div>{process(node.data.pathMappings)}</div>}
+      //   </div>);
+      //   return { ...node, data: { ...node.data, label: newLabel } };
+      // });
+
+      const {nodes: layoutedNodes, edges: layoutedEdges} = layout.graph(d.nodes, d.edges);
+      this.setState((state, props) => ({
+        nodes: layoutedNodes,
+        edges: layoutedEdges,
+        // namespaces: state.params.namespaces //state.namespaces,
+        // pods: state.pods
+      }));
+    });
+  }
+
+  getGroup(url, filter = "") {
     if (filter != "") {
       url += "&filter=" + filter;
     }
@@ -69,12 +116,12 @@ class Namespace extends Component {
     })
     .then(res => res.json())
     .then(d => {
-      console.log('/api/v1/namespace/', d);
-      const {nodes: layoutedNodes, edges: layoutedEdges} = this.getLayoutedGroup(d.nodes, d.edges);
+      console.log("getGroup", url, d);
+      const {nodes: layoutedNodes, edges: layoutedEdges} = layout.group(d.nodes, d.edges);
       this.setState((state, props) => ({
         nodes: layoutedNodes,
         edges: layoutedEdges,
-        namespaces: state.namespaces
+        //namespaces: state.params.namespaces
       }));
     });
   }
@@ -105,53 +152,35 @@ class Namespace extends Component {
   }
 
   onNodeClick = (e, node) => {
-    window.open("/namespace/" + node.data.namespace + "/" + node.data.kind + "/" + node.data.label, "_self");
+    if (node.data.kind === "vol") {
+      this.setState((state, props) => ({
+        //resourceOverlay: !this.state.resourceOverlay,
+        overlay: {view: true, kind: "", label: ""},
+        //url: '/api/v1/' + node.data.kind + '/'  + this.props.params.namespace + '/' + this.props.params.pod + '/'  + node.data.label,
+        //params: this.props.params,
+        data: node.data
+      }));
+    } else {
+      this.setState((state, props) => ({
+        //resourceOverlay: !this.state.resourceOverlay,
+        overlay: {view: true, kind: "", label: ""},
+        //url: '/api/v1/' + node.data.kind + '/'  + this.props.params.namespace + '/' + node.data.label,
+        //params: this.props.params,
+        data: node.data
+      }));
+    }
+    //window.open("/namespace/" + node.data.namespace + "/" + node.data.kind + "/" + node.data.label, "_self");
   };
 
   goHome() {
     window.open("/", "_self");
   }
 
-  getLayoutedGroup(nodes, edges, columns) {
-    if (nodes.length > 25) {
-      columns = 10
-    } else {
-      columns = 5
-    }
-    var i = 0;
-    var xoffset = 0;
-    var yoffset = 0;
-    var xmax = 0;
-    var ymax = 0;
-    nodes.forEach((node) => {
-      node.position = {x: 50, y: 50};
-      if (node.data.group) {
-        i--;
-      } else {
-        if (i !== 0) {
-          if (i % columns === 0) {
-            // newline
-            i = 0;
-            xoffset = 0;
-            yoffset += 150;
-            node.position = {x: node.position.x + xoffset, y: node.position.y + yoffset};
-          } else {
-            xoffset += 300;
-            node.position = {x: node.position.x + xoffset, y: node.position.y + yoffset};
-          }
-        }
-      }
-      xmax = xoffset > xmax ? xoffset : xmax; 
-      ymax = yoffset > ymax ? yoffset : ymax;
-      i++;
-      //console.log(node.id, node.position.x, xoffset, node.position.y, yoffset);
-      return node;
-    });
-    nodes[0].style.width = xmax + 375;
-    nodes[0].style.height = ymax + 200;
-    nodes[0].type = "default";
-    return {nodes, edges};
-  };
+  closeResourceOverlay = (e) => {
+    this.setState((state, props) => ({
+      overlay: {view: false, kind: "", label: ""}
+    }));
+  }
 
   componentDidUpdate(prevProps, prevState) {
     if(prevState !== this.state) {
@@ -162,9 +191,9 @@ class Namespace extends Component {
   render() {
     return (
       <div style={{ width: '100vw', height: '100vh' }}>
-        <Nav params={this.props.params} onListClick={this.openListView} filter={this.state.search.filter} close={this.closeSearchView} onSearchClick={this.openSearchView} />
+        <Nav params={this.state.params} onListClick={this.openListView} filter={this.state.search.filter} close={this.closeSearchView} onSearchClick={this.openSearchView} />
         {this.state.list.view 
-        ? <ListView data={this.state.data} meta={this.state.list} close={this.closeListView} /> 
+        ? <ListView meta={this.state.list} close={this.closeListView} /> 
         : this.state.search.view
           ? <SearchView filter={this.state.search.filter} close2={this.closeSearchView} /> 
           : <ReactFlow
@@ -186,7 +215,7 @@ class Namespace extends Component {
           <MiniMap />
           <Background variant="dots" gap={12} size={1} />
         </ReactFlow>
-      }  
+      } {this.state.overlay.view ? <ResourceOverlay data={this.state.data} params={this.state.params} close={this.closeResourceOverlay} /> : ""}
       </div>
     );
   }

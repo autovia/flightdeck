@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, {Component} from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
 class ListView extends Component {
   constructor(props) {
@@ -30,18 +30,16 @@ class ListView extends Component {
               <div className="flex items-start justify-between">
                 <div className="">
                   <div className="font-bold text-xl leading-6 text-gray-900 border-b-4 p-4">
+                    <button
+                      type="button"
+                      className="pr-4 rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      onClick={this.props.close}
+                    >
+                      <span className="sr-only">Back</span>
+                      <ArrowLeftIcon className="h-6 w-6" aria-hidden="true" />
+                    </button>
                     {this.props.meta.label}
                   </div>
-                </div>
-                <div className="ml-3 flex h-7 items-center">
-                  <button
-                    type="button"
-                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    onClick={this.props.close}
-                  >
-                    <span className="sr-only">Close panel</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
                 </div>
               </div>
             </div>

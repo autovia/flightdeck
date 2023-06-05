@@ -17,7 +17,7 @@ export default function Dropdown({showRef, onClick, data}) {
 
   showRef = (e) => {
     e.stopPropagation();
-    window.open("/namespace/" + data.namespace + "/" + data.kind + "/" + data.label, "_self");
+    window.open("/resource/" + data.namespace + "/" + data.kind + "/" + data.label, "_self");
   }
   
   return (

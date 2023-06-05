@@ -77,20 +77,20 @@ class Pod extends Component {
       }));
     });
 
-    fetch('/api/v1/pods?namespace=' + this.props.params.namespace)
-      .then(res => res.json())
-      .then(d => {
-        console.log('/api/v1/namespace/', d);
-        //const pods = d.nodes.filter((f) => f.data.kind === "pod").map(m => m.data.label);
-        const pods = d.nodes.filter((f) => f.data.kind === "pod");//.map(m => m.data.label);
-        console.log("pods", pods);
-        this.setState((state, props) => ({
-          nodes: state.nodes,
-          edges: state.edges,
-          namespaces: state.namespaces,
-          pods: pods
-        }));
-      });
+    // fetch('/api/v1/pods?namespace=' + this.props.params.namespace)
+    //   .then(res => res.json())
+    //   .then(d => {
+    //     console.log('/api/v1/namespace/', d);
+    //     //const pods = d.nodes.filter((f) => f.data.kind === "pod").map(m => m.data.label);
+    //     const pods = d.nodes.filter((f) => f.data.kind === "pod");//.map(m => m.data.label);
+    //     console.log("pods", pods);
+    //     this.setState((state, props) => ({
+    //       nodes: state.nodes,
+    //       edges: state.edges,
+    //       namespaces: state.namespaces,
+    //       pods: pods
+    //     }));
+    //   });
   }
 
   // onPodClick = (e, node) => {

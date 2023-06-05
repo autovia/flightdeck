@@ -385,7 +385,7 @@ func NamespacePodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *
 
 	for _, pod := range podList.Items {
 		if strings.Contains(pod.ObjectMeta.Name, filter) {
-			g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "pod", ParentNode: node, Extent: "parent"})
+			g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: pod.Namespace, Type: "pod", ParentNode: node, Extent: "parent"})
 		}
 	}
 

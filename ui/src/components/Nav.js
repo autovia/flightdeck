@@ -4,11 +4,10 @@
 import { Fragment, Component } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 import { UserCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-import {useParams} from 'react-router-dom';
 import MenuSelect from './MenuSelect';
 import MenuSelectResource from './MenuSelectResource';
 import MenuSelectCluster from './MenuSelectCluster';
-import * as k8s from './config/k8s';
+import * as k8s from './utils/k8s';
 
 const userNavigation = [
   { name: 'Sign out', href: '#' },
@@ -183,8 +182,4 @@ class Nav extends Component {
   }
 }
 
-function withParams(Component) {
-  return (props) => <Component {...props} params={useParams()} />;
-}
-
-export default withParams(Nav);
+export default Nav;
