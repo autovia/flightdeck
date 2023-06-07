@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	clientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -101,7 +103,17 @@ func (app *App) NewApiClient(token string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{ApiClient: apiclientset, Config: config}, nil
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{ApiClient: apiclientset, Dynamic: dynamicClient, Discovery: discoveryClient, Config: config}, nil
 }
 
 func (app *App) buildConfigFromToken(token string) (*rest.Config, error) {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/autovia/flightdeck/api/handlers/auth"
+	"github.com/autovia/flightdeck/api/handlers/dynamic"
 	"github.com/autovia/flightdeck/api/handlers/k8s"
 	S "github.com/autovia/flightdeck/api/structs"
 )
@@ -161,6 +162,10 @@ func InitRoutes(app *S.App) {
 	app.Router.Handle("/api/v1/pod/logs/", S.KubeClient{app, k8s.PodLogsHandler})
 	app.Router.Handle("/api/v1/pod/fs/", S.KubeClient{app, k8s.PodFilesystemHandler})
 	app.Router.Handle("/api/v1/pod/file/", S.KubeClient{app, k8s.PodFileOpenHandler})
+
+	// Dynamic Client
+	app.Router.Handle("/api/v1/list/", S.ApiClient{app, dynamic.ListClusterResourcesHandler})
+	app.Router.Handle("/api/v1/resources/", S.ApiClient{app, dynamic.ListNamespaceResourcesHandler})
 
 	// Main
 	if *app.FileServer {

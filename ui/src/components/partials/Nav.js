@@ -7,7 +7,7 @@ import { UserCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import MenuSelect from './MenuSelect';
 import MenuSelectResource from './MenuSelectResource';
 import MenuSelectCluster from './MenuSelectCluster';
-import * as k8s from './utils/k8s';
+import * as k8s from '../utils/K8s';
 
 const userNavigation = [
   { name: 'Sign out', href: '#' },
@@ -41,7 +41,7 @@ class Nav extends Component {
     });
     this.setState((state, props) => ({
       resource: k8s.resources.find((e) => e.id === this.props.params.kind),
-      clusterResource: k8s.clusterResources.find((e) => e.id === this.props.params.kind)
+      clusterResource: k8s.cluster.find((e) => e.id === this.props.params.kind)
     }));
   }
 
@@ -105,7 +105,7 @@ class Nav extends Component {
                 <div className="flex flex-shrink-0 items-center">
                   <MenuSelect selected={this.state.namespace || null} setSelected={this.changeNamespace} items={this.state.namespaces} init="Namespace" />
                   <MenuSelectResource selected={this.state.resource || null} setSelected={this.changeResource} items={k8s.resources} init="Resource" />
-                  <MenuSelectCluster selected={this.clusterResource || null} setSelected={this.changeClusterResource} items={k8s.clusterResources} init="Cluster" />
+                  <MenuSelectCluster selected={this.clusterResource || null} setSelected={this.changeClusterResource} items={k8s.cluster} init="Cluster" />
                 </div>
               </div>
               <div className="flex flex-1 items-center justify-center px-2 lg:ml-6 lg:justify-end">

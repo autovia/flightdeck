@@ -17,7 +17,7 @@ func ReplicaSetHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.R
 	url := S.GetRequestParams(r, "/api/v1/rs/")
 	log.Printf("ReplicaSetHandler url: %v", url)
 
-	rs, err := c.Clientset.AppsV1().ReplicaSets(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	rs, err := c.Clientset.AppsV1().ReplicaSets(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -31,9 +31,9 @@ func ReplicaSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r 
 	log.Printf("ReplicaSetPodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-	rsnode := g.AddNode("rs", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "rs"})
+	rsnode := g.AddNode("rs", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Scope, Type: "rs"})
 
-	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -48,7 +48,7 @@ func ReplicaSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r 
 
 				if url.Resource == statefulset.ObjectMeta.Name {
 					if !g.Includes(pod.ObjectMeta.Name) {
-						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "pod"})
+						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
 						g.AddEdge(rsnode, podnode)
 					}
 				}
@@ -65,18 +65,18 @@ func NamespaceReplicaSetListHandler(app *S.App, c *S.Client, w http.ResponseWrit
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Scope, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	rsList, err := c.Clientset.AppsV1().ReplicaSets(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	rsList, err := c.Clientset.AppsV1().ReplicaSets(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	for _, rs := range rsList.Items {
-		g.AddNode("rs", string(rs.ObjectMeta.UID), rs.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "rs", ParentNode: node, Extent: "parent"})
+		g.AddNode("rs", string(rs.ObjectMeta.UID), rs.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "rs", ParentNode: node, Extent: "parent"})
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)

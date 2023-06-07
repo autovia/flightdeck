@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, {Component} from 'react';
-import { ArrowLeftIcon, DocumentIcon, FolderIcon } from '@heroicons/react/24/outline'
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')

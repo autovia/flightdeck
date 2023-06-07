@@ -17,7 +17,7 @@ func RoleHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request
 	url := S.GetRequestParams(r, "/api/v1/role/")
 	log.Printf("RoleHandler url: %v", url)
 
-	role, err := c.Clientset.RbacV1().Roles(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	role, err := c.Clientset.RbacV1().Roles(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -32,18 +32,18 @@ func NamespaceRoleListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r 
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Scope, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	roleList, err := c.Clientset.RbacV1().Roles(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	roleList, err := c.Clientset.RbacV1().Roles(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	for _, role := range roleList.Items {
-		g.AddNode("role", string(role.ObjectMeta.UID), role.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "role", ParentNode: node, Extent: "parent"})
+		g.AddNode("role", string(role.ObjectMeta.UID), role.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "role", ParentNode: node, Extent: "parent"})
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)

@@ -24,7 +24,7 @@ func PodHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request)
 	url := S.GetRequestParams(r, "/api/v1/pod/")
 	log.Printf("PodHandler url: %v", url)
 
-	pod, err := c.Clientset.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	pod, err := c.Clientset.CoreV1().Pods(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -37,7 +37,7 @@ func PodVolumeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Re
 	url := S.GetRequestParams(r, "/api/v1/pod/vol/")
 	log.Printf("PodVolumeHandler url: %v", url)
 
-	pod, err := c.Clientset.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	pod, err := c.Clientset.CoreV1().Pods(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -110,17 +110,17 @@ func PodLogsHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Requ
 	// container name
 	if url.Subresource != "" {
 		// open container on request
-		request = c.Clientset.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: url.Subresource})
+		request = c.Clientset.CoreV1().Pods(url.Scope).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: url.Subresource})
 	} else {
-		pod, err := c.Clientset.CoreV1().Pods(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+		pod, err := c.Clientset.CoreV1().Pods(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 		if err != nil {
 			return S.RespondError(err)
 		}
 
 		if len(pod.Spec.Containers) > 0 {
-			request = c.Clientset.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: pod.Spec.Containers[0].Name})
+			request = c.Clientset.CoreV1().Pods(url.Scope).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines, Container: pod.Spec.Containers[0].Name})
 		} else {
-			request = c.Clientset.CoreV1().Pods(url.Namespace).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines})
+			request = c.Clientset.CoreV1().Pods(url.Scope).GetLogs(url.Resource, &corev1.PodLogOptions{TailLines: app.PodLogTailLines})
 		}
 	}
 

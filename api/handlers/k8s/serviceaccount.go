@@ -17,7 +17,7 @@ func ServiceAccountHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *ht
 	url := S.GetRequestParams(r, "/api/v1/sa/")
 	log.Printf("ServiceAccountHandler url: %v", url)
 
-	sa, err := c.Clientset.CoreV1().ServiceAccounts(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	sa, err := c.Clientset.CoreV1().ServiceAccounts(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -32,18 +32,18 @@ func ServiceAccountPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Scope, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	saList, err := c.Clientset.CoreV1().ServiceAccounts(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	saList, err := c.Clientset.CoreV1().ServiceAccounts(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	for _, sa := range saList.Items {
-		g.AddNode("sa", string(sa.ObjectMeta.UID), sa.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "sa", ParentNode: node, Extent: "parent"})
+		g.AddNode("sa", string(sa.ObjectMeta.UID), sa.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "sa", ParentNode: node, Extent: "parent"})
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)
@@ -55,18 +55,18 @@ func NamespaceServiceAccountListHandler(app *S.App, c *S.Client, w http.Response
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Scope, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	saList, err := c.Clientset.CoreV1().ServiceAccounts(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	saList, err := c.Clientset.CoreV1().ServiceAccounts(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	for _, sa := range saList.Items {
-		g.AddNode("sa", string(sa.ObjectMeta.UID), sa.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "sa", ParentNode: node, Extent: "parent"})
+		g.AddNode("sa", string(sa.ObjectMeta.UID), sa.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "sa", ParentNode: node, Extent: "parent"})
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)

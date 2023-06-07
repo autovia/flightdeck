@@ -1,7 +1,7 @@
 // Copyright (c) Autovia GmbH
 // SPDX-License-Identifier: Apache-2.0
 
-import CustomNodeEdge from './CustomNodeEdge';
+import CustomNodeEdge from '../partials/CustomNodeEdge';
 
 export const nodeTypes = {
     pod: CustomNodeEdge,

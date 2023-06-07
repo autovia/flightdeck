@@ -5,7 +5,7 @@ import React, { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import Dropdown from './Dropdown';
 
-function PodNodeEdge({ data }) {
+function CustomNodeEdge({ data }) {
   return (
     <div className="px-2 py-2 shadow-md rounded-md bg-white border-2 border-stone-400">
       <div className="flex">
@@ -25,4 +25,4 @@ function PodNodeEdge({ data }) {
   );
 }
 
-export default memo(PodNodeEdge);
+export default memo(CustomNodeEdge);

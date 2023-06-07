@@ -4,10 +4,9 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
-import Namespace from './components/Namespace';
+import Stage from './components/Stage';
 
 function App() {
-
    const [isLoggedIn, setIsLoggedIn] = useState(false);
    const [isLoaded, setIsLoaded] = useState(false);
    
@@ -29,11 +28,12 @@ function App() {
       <>{ isLoaded ? 
          <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={!isLoggedIn ? <Login /> : <Namespace />} />
-            <Route path="/cluster/:cluster" element={!isLoggedIn ? <Login /> : <Namespace />} />
-            <Route path="/node/:node" element={!isLoggedIn ? <Login /> : <Namespace />} />
-            <Route path="/namespace/:namespace/:kind" element={!isLoggedIn ? <Login /> : <Namespace />} />
-            <Route path="/resource/:namespace/:kind/:resource" element={!isLoggedIn ? <Login /> : <Namespace />} />  
+            <Route path="/" element={!isLoggedIn ? <Login /> : <Stage />} />
+            <Route path="/cluster/:cluster" element={!isLoggedIn ? <Login /> : <Stage />} />
+            <Route path="/clusterresource/:kind/:resource" element={!isLoggedIn ? <Login /> : <Stage />} />
+            <Route path="/node/:node" element={!isLoggedIn ? <Login /> : <Stage />} />
+            <Route path="/namespace/:namespace/:kind" element={!isLoggedIn ? <Login /> : <Stage />} />
+            <Route path="/resource/:namespace/:kind/:resource" element={!isLoggedIn ? <Login /> : <Stage />} />  
          </Routes>
          : null}
       </>   

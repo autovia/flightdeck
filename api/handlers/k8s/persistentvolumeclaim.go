@@ -17,7 +17,7 @@ func PersistentVolumeClaim(app *S.App, c *S.Client, w http.ResponseWriter, r *ht
 	url := S.GetRequestParams(r, "/api/v1/pvc/")
 	log.Printf("ReplicaSetHandler url: %v", url)
 
-	pvc, err := c.Clientset.CoreV1().PersistentVolumeClaims(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	pvc, err := c.Clientset.CoreV1().PersistentVolumeClaims(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -31,9 +31,9 @@ func PersistentVolumeClaimPodListHandler(app *S.App, c *S.Client, w http.Respons
 	log.Printf("PersistentVolumeClaimPodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-	pvcnode := g.AddNode("pvc", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "pvc"})
+	pvcnode := g.AddNode("pvc", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Scope, Type: "pvc"})
 
-	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -42,7 +42,7 @@ func PersistentVolumeClaimPodListHandler(app *S.App, c *S.Client, w http.Respons
 			if volume.PersistentVolumeClaim != nil {
 				if volume.PersistentVolumeClaim.ClaimName == url.Resource {
 					if !g.Includes(pod.ObjectMeta.Name) {
-						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "pod"})
+						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
 						g.AddEdge(pvcnode, podnode)
 					}
 				}
@@ -59,18 +59,18 @@ func NamespacePersistentVolumeClaimListHandler(app *S.App, c *S.Client, w http.R
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Scope, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	pvcList, err := c.Clientset.CoreV1().PersistentVolumeClaims(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	pvcList, err := c.Clientset.CoreV1().PersistentVolumeClaims(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	for _, cm := range pvcList.Items {
-		g.AddNode("pvc", string(cm.ObjectMeta.UID), cm.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "pvc", ParentNode: node, Extent: "parent"})
+		g.AddNode("pvc", string(cm.ObjectMeta.UID), cm.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pvc", ParentNode: node, Extent: "parent"})
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)

@@ -17,7 +17,7 @@ func StatefulSetHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.
 	url := S.GetRequestParams(r, "/api/v1/sts/")
 	log.Printf("StatefulSetHandler url: %v", url)
 
-	sts, err := c.Clientset.AppsV1().StatefulSets(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	sts, err := c.Clientset.AppsV1().StatefulSets(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -31,9 +31,9 @@ func StatefulSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r
 	log.Printf("StatefulSetPodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-	stsnode := g.AddNode("sts", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "sts"})
+	stsnode := g.AddNode("sts", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Scope, Type: "sts"})
 
-	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -48,7 +48,7 @@ func StatefulSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r
 
 				if url.Resource == statefulset.ObjectMeta.Name {
 					if !g.Includes(pod.ObjectMeta.Name) {
-						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "pod"})
+						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
 						g.AddEdge(stsnode, podnode)
 					}
 				}
@@ -65,18 +65,18 @@ func NamespaceStatefulSetListHandler(app *S.App, c *S.Client, w http.ResponseWri
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Scope, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	stsList, err := c.Clientset.AppsV1().StatefulSets(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	stsList, err := c.Clientset.AppsV1().StatefulSets(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	for _, sts := range stsList.Items {
-		g.AddNode("sts", string(sts.ObjectMeta.UID), sts.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "sts", ParentNode: node, Extent: "parent"})
+		g.AddNode("sts", string(sts.ObjectMeta.UID), sts.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "sts", ParentNode: node, Extent: "parent"})
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)

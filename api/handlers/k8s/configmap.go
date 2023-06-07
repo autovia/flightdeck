@@ -17,7 +17,7 @@ func ConfigMapHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Re
 	url := S.GetRequestParams(r, "/api/v1/cm/")
 	log.Printf("ConfigMapHandler url: %v", url)
 
-	cm, err := c.Clientset.CoreV1().ConfigMaps(url.Namespace).Get(context.TODO(), url.Resource, metav1.GetOptions{})
+	cm, err := c.Clientset.CoreV1().ConfigMaps(url.Scope).Get(context.TODO(), url.Resource, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -31,9 +31,9 @@ func ConfigMapPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *
 	log.Printf("ConfigMapPodListHandler url: %v", url)
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
-	cmnode := g.AddNode("cm", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Namespace, Type: "cm"})
+	cmnode := g.AddNode("cm", url.Resource, url.Resource, S.NodeOptions{Namespace: url.Scope, Type: "cm"})
 
-	podList, err := c.Clientset.CoreV1().Pods(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	podList, err := c.Clientset.CoreV1().Pods(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
@@ -42,7 +42,7 @@ func ConfigMapPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *
 			if volume.ConfigMap != nil {
 				if volume.ConfigMap.Name == url.Resource {
 					if !g.Includes(pod.ObjectMeta.Name) {
-						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "pod"})
+						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
 						g.AddEdge(cmnode, podnode)
 					}
 				}
@@ -52,7 +52,7 @@ func ConfigMapPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *
 					if source.ConfigMap != nil {
 						if source.ConfigMap.Name == url.Resource {
 							if !g.Includes(pod.ObjectMeta.Name) {
-								podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "pod"})
+								podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
 								g.AddEdge(cmnode, podnode)
 							}
 						}
@@ -71,18 +71,18 @@ func NamespaceConfigMapListHandler(app *S.App, c *S.Client, w http.ResponseWrite
 
 	g := S.Graph{Nodes: []S.Node{}, Edges: []S.Edge{}}
 
-	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Namespace, metav1.GetOptions{})
+	ns, err := c.Clientset.CoreV1().Namespaces().Get(context.TODO(), url.Scope, metav1.GetOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	node := g.AddNode("ns", string(ns.ObjectMeta.UID), ns.ObjectMeta.Name, S.NodeOptions{Type: "namespace", Group: true})
 
-	cmList, err := c.Clientset.CoreV1().ConfigMaps(url.Namespace).List(context.TODO(), metav1.ListOptions{})
+	cmList, err := c.Clientset.CoreV1().ConfigMaps(url.Scope).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return S.RespondError(err)
 	}
 	for _, cm := range cmList.Items {
-		g.AddNode("cm", string(cm.ObjectMeta.UID), cm.ObjectMeta.Name, S.NodeOptions{Namespace: url.Namespace, Type: "cm", ParentNode: node, Extent: "parent"})
+		g.AddNode("cm", string(cm.ObjectMeta.UID), cm.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "cm", ParentNode: node, Extent: "parent"})
 	}
 
 	return S.RespondJSON(w, http.StatusOK, g)

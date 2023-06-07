@@ -4,12 +4,11 @@
 import React, {Fragment, Component} from 'react';
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import Tabs from './Tabs';
-import FilesystemBrowser from './FilesystemBrowser';
-import DescribeResource from './DescribeResource';
+import Tabs from './partials/Tabs';
+import FilesystemBrowser from './partials/FilesystemBrowser';
+import DescribeResource from './partials/DescribeResource';
 
-//export default function Overlay({ data, params, close }) {
-class ResourceOverlay extends Component {
+class Resource extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -23,6 +22,7 @@ class ResourceOverlay extends Component {
   }
 
   componentDidMount() {
+    console.log("Resource componentDidMount", this.props);
     this.fetchDescribe();
   }
 
@@ -49,6 +49,8 @@ class ResourceOverlay extends Component {
   fetchDescribe() {
     if (this.props.data.kind === "vol") {
       this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.params.pod + '/'  + this.props.data.label + '?format=json', "describe");
+    } else if (this.props.params.type === "clusterresource") {
+      this.fetchJson('/api/v1/' + this.props.params.kind + '/'  + this.props.params.resource + '?format=json', "describe");
     } else {
       this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label + '?format=json', "describe");
     }
@@ -125,6 +127,10 @@ class ResourceOverlay extends Component {
         this.fetchRefs();
         break;
     }
+  }
+
+  showRef = (ref) => {
+    window.open("/resource/" + this.props.params.namespace + "/pod/" + ref, "_self");
   }
 
   onContainerChange = (e) => {
@@ -207,7 +213,7 @@ class ResourceOverlay extends Component {
                     {this.state.currentTab === "ref"
                       ? <div className="relative mt-6 flex-1 px-4 sm:px-6">
                           {this.state.references && this.state.references.length > 0 && this.state.references.map((ref) => (
-                            <p key={ref}>{ref}</p>
+                            <p key={ref}><a href="#" onClick={() => this.showRef(ref)}>{ref}</a></p>
                           ))}
                         </div>
                       : ""
@@ -224,4 +230,4 @@ class ResourceOverlay extends Component {
   }
 }
 
-export default ResourceOverlay;
+export default Resource;

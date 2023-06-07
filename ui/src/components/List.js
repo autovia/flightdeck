@@ -1,38 +1,46 @@
 // Copyright (c) Autovia GmbH
 // SPDX-License-Identifier: Apache-2.0
 
-import {Component} from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import * as k8s from './utils/k8s';
+import React, {Component} from 'react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
-class SearchView extends Component {
+class List extends Component {
   constructor(props) {
     super(props);
     this.state = {
         open: true,
-        data: new Map()
+        data: []
     }
   }
 
   componentDidMount() {
-    console.log("SearchOverlay componentDidMount", this.props);
-    var result = new Map()
-    fetch('/api/v1/crd')
+    this.getList();
+  }
+
+  getList() {
+    fetch('/api/v1/list/' + this.props.meta.kind)
     .then(res => res.json())
     .then(d => {
-      result.set("crd", d)
-      this.setState((state, props) => ({
-        data: result
-      }));
+      if (d && d.length > 0) {
+        this.setState((state, props) => ({
+          data: d,
+        }));
+      } else {
+        this.setState((state, props) => ({
+          data: [],
+        }));
+      }
     });
-    // fetch('/api/v1/c-role')
-    // .then(res => res.json())
-    // .then(d => {
-    //   result.set("cr", d)
-    //   this.setState((state, props) => ({
-    //     data: result
-    //   }));
-    // });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(prevState !== this.state) {
+      console.log('List componentDidUpdate state: ', this.state);
+    }
+    if(prevProps !== this.props) {
+      console.log('List componentDidUpdate props: ', this.props);
+      this.getList();
+    }
   }
 
   render() {
@@ -42,23 +50,20 @@ class SearchView extends Component {
               <div className="flex items-start justify-between">
                 <div className="">
                   <div className="font-bold text-xl leading-6 text-gray-900 border-b-4 p-4">
-                    Search
+                    <button
+                      type="button"
+                      className="pr-4 rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      onClick={this.props.close}
+                    >
+                      <span className="sr-only">Back</span>
+                      <ArrowLeftIcon className="h-6 w-6" aria-hidden="true" />
+                    </button>
+                    {this.props.meta.label}
                   </div>
-                </div>
-                <div className="ml-3 flex h-7 items-center">
-                  <button
-                    type="button"
-                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    onClick={() => this.props.close2}
-                  >
-                    <span className="sr-only">Close panel</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
                 </div>
               </div>
             </div>
             <div className="relative mt-6 flex-1 px-4 sm:px-6">
-            {this.state.data.keys().length > 0 ?
               <table className="table-auto w-300">
                 <thead className="bg-white">
                   <tr>
@@ -71,23 +76,22 @@ class SearchView extends Component {
                   </tr>
                 </thead>
                   <tbody className="bg-white">
-                  {Array.from(this.state.data.keys()).map((k) => (
-                    <tr key={this.state.data[k].metadata.uid} className="border-t border-gray-200">
+                  {this.state.data.map((i) => (
+                    <tr key={i.uid} className="border-t border-gray-200">
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">
-                      {this.state.data[k].metadata.name}
+                      {i.name}
                       </td>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">
-                      {this.state.data[k].metadata.creationTimestamp}
+                      {i.creationTimestamp}
                       </td>     
                     </tr>
                   ))}
                   </tbody>
               </table>
-                : ""}
             </div> 
           </div>
     );
   }
 }
 
-export default SearchView;
+export default List;
