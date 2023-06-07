@@ -12,6 +12,7 @@ import (
 	"github.com/autovia/flightdeck/api/utils"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func ListClusterResourcesHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
@@ -30,10 +31,20 @@ func ListNamespaceResourcesHandler(app *S.App, c *S.Client, w http.ResponseWrite
 	url := S.GetRequestParams(r, "/api/v1/resources/")
 	log.Printf("ListNamespaceResourcesHandler url: %v", url)
 
-	list, err := c.Dynamic.Resource(utils.GVR[url.Resource]).Namespace(url.Scope).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return S.RespondError(err)
+	var list *unstructured.UnstructuredList
+	var err error
+
+	if url.Scope == "all" {
+		list, err = c.Dynamic.Resource(utils.GVR[url.Resource]).List(context.TODO(), metav1.ListOptions{})
+		if err != nil {
+			return S.RespondError(err)
+		}
+	} else {
+		list, err = c.Dynamic.Resource(utils.GVR[url.Resource]).Namespace(url.Scope).List(context.TODO(), metav1.ListOptions{})
+		if err != nil {
+			return S.RespondError(err)
+		}
 	}
 
-	return S.RespondFilter(r, w, http.StatusOK, list)
+	return S.RespondGraph(r, w, http.StatusOK, list, &url)
 }

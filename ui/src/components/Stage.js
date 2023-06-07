@@ -43,7 +43,6 @@ class Stage extends Component {
         this.openListView({id: this.props.params.cluster, name: k8s.cluster.filter((f) => f.id === this.props.params.cluster)[0].name});
         break;
       case this.isView("clusterresource"):
-        //this.getGroup('/api/v1/node/' + this.props.params.node);
         this.setState((state, props) => ({
           overlay: {view: true},
           data: []
@@ -56,7 +55,7 @@ class Stage extends Component {
         this.getGraph('/api/v1/graph/' + this.props.params.kind + '/' + this.props.params.namespace + '/' + this.props.params.resource);
         break;
       default:
-        this.getGroup('/api/v1/' + this.state.params.kind + "?namespace=" + this.state.params.namespace);
+        this.getGroup('/api/v1/resources/' + this.state.params.namespace + "/" + this.state.params.kind);
     } 
   }
 

@@ -76,6 +76,21 @@ type ObjectList struct {
 	CreationTimestamp metav1.Time `json:"creationTimestamp"`
 }
 
+func RespondGraph(r *http.Request, w http.ResponseWriter, status int, list *unstructured.UnstructuredList, url *RequestUrl) error {
+	filter := r.URL.Query().Get("filter")
+
+	g := Graph{Nodes: []Node{}, Edges: []Edge{}}
+	node := g.AddNode("ns", url.Scope, url.Scope, NodeOptions{Type: "namespace", Group: true})
+
+	for _, item := range list.Items {
+		if strings.Contains(item.GetName(), filter) {
+			g.AddNode(url.Resource, string(item.GetUID()), item.GetName(), NodeOptions{Namespace: item.GetNamespace(), Type: url.Resource, ParentNode: node, Extent: "parent"})
+		}
+	}
+
+	return RespondJSON(w, http.StatusOK, g)
+}
+
 func RespondFilter(r *http.Request, w http.ResponseWriter, status int, list *unstructured.UnstructuredList) error {
 	filter := r.URL.Query().Get("filter")
 

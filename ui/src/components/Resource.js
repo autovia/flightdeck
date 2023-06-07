@@ -40,27 +40,27 @@ class Resource extends Component {
 
   fetchYaml() {
     if (this.props.data.kind === "vol") {
-      this.fetchText('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.params.pod + '/'  + this.props.data.label, "yaml");
+      this.fetchText('/api/v1/' + this.props.data.kind + '/'  + this.props.data.namespace + '/' + this.props.data.pod + '/'  + this.props.data.label, "yaml");
     } else {
-      this.fetchText('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label, "yaml");
+      this.fetchText('/api/v1/' + this.props.data.kind + '/'  + this.props.data.namespace + '/' + this.props.data.label, "yaml");
     }
   }
 
   fetchDescribe() {
     if (this.props.data.kind === "vol") {
-      this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.params.pod + '/'  + this.props.data.label + '?format=json', "describe");
-    } else if (this.props.params.type === "clusterresource") {
-      this.fetchJson('/api/v1/' + this.props.params.kind + '/'  + this.props.params.resource + '?format=json', "describe");
+      this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.data.namespace + '/' + this.props.data.pod + '/'  + this.props.data.label + '?format=json', "describe");
+    } else if (this.props.data.type === "clusterresource") {
+      this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.data.resource + '?format=json', "describe");
     } else {
-      this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label + '?format=json', "describe");
+      this.fetchJson('/api/v1/' + this.props.data.kind + '/'  + this.props.data.namespace + '/' + this.props.data.label + '?format=json', "describe");
     }
   }
 
   fetchLogs() {
     if (this.state.currentContainer != "") {
-      this.fetchText('/api/v1/pod/logs/'  + this.props.params.namespace + '/' + this.props.data.label + '/' + this.state.currentContainer, "logs");
+      this.fetchText('/api/v1/pod/logs/'  + this.props.data.namespace + '/' + this.props.data.label + '/' + this.state.currentContainer, "logs");
     } else {
-      this.fetchText('/api/v1/pod/logs/'  + this.props.params.namespace + '/' + this.props.data.label, "logs");
+      this.fetchText('/api/v1/pod/logs/'  + this.props.data.namespace + '/' + this.props.data.label, "logs");
     }
   }
 
@@ -71,7 +71,7 @@ class Resource extends Component {
   }
 
   fetchRefs() {
-    const url = '/api/v1/graph/' + this.props.data.kind + '/'  + this.props.params.namespace + '/' + this.props.data.label;
+    const url = '/api/v1/graph/' + this.props.data.kind + '/'  + this.props.data.namespace + '/' + this.props.data.label;
     fetch(url)
     //.then(res => res.text())
     .then(res => res.json())
@@ -130,7 +130,7 @@ class Resource extends Component {
   }
 
   showRef = (ref) => {
-    window.open("/resource/" + this.props.params.namespace + "/pod/" + ref, "_self");
+    window.open("/resource/" + this.props.data.namespace + "/pod/" + ref, "_self");
   }
 
   onContainerChange = (e) => {
@@ -207,7 +207,7 @@ class Resource extends Component {
                       : ""
                     }
                     {this.state.currentTab === "files"
-                      ? <FilesystemBrowser url={this.props.params.namespace + '/' + this.props.data.label + '/' + this.state.currentContainer}></FilesystemBrowser>
+                      ? <FilesystemBrowser url={this.props.data.namespace + '/' + this.props.data.label + '/' + this.state.currentContainer}></FilesystemBrowser>
                       : ""
                     }
                     {this.state.currentTab === "ref"
