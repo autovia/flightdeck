@@ -24,7 +24,7 @@ class Stage extends Component {
       namespaces: [], 
       list: {view: false, kind: "", label: ""},
       search: {view: false, filter: ""},
-      overlay: {view: false, kind: "", label: ""},
+      overlay: {view: false},
       data: [],
       params: {
         kind: typeof props.params.kind === "undefined" ? "pod" : props.params.kind, 
@@ -138,12 +138,12 @@ class Stage extends Component {
   onNodeClick = (e, node) => {
     if (node.data.kind === "vol") {
       this.setState((state, props) => ({
-        overlay: {view: true, kind: "", label: ""},
+        overlay: {view: true},
         data: node.data
       }));
     } else {
       this.setState((state, props) => ({
-        overlay: {view: true, kind: "", label: ""},
+        overlay: {view: true},
         data: node.data
       }));
     }
@@ -151,7 +151,7 @@ class Stage extends Component {
 
   closeResourceOverlay = (e) => {
     this.setState((state, props) => ({
-      overlay: {view: false, kind: "", label: ""}
+      overlay: {view: false}
     }));
   }
 
@@ -188,7 +188,7 @@ class Stage extends Component {
           <MiniMap />
           <Background variant="dots" gap={12} size={1} />
         </ReactFlow>
-      } {this.state.overlay.view ? <ResourceOverlay data={this.state.data} params={this.state.params} close={this.closeResourceOverlay} /> : ""}
+      } {this.state.overlay.view ? <ResourceOverlay overlay={true} data={this.state.data} close={this.closeResourceOverlay} /> : ""}
       </div>
     );
   }

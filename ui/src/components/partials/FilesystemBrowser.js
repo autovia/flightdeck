@@ -123,7 +123,7 @@ class FilesystemBrowser extends Component {
     
     render() {
         return (
-            <div>
+            <div className='overflow-x-auto'>
             <div className="relative mt-6 flex-1 px-4 sm:px-6">
             {this.state.content == null ?
               <ul>
