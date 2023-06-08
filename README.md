@@ -1,7 +1,5 @@
 # Flightdeck
 
-Kubernetes from a higher altitude.
-
 **IMPORTANT:** This is not production-ready software. This project is in active development.
 
 ## Introduction
@@ -9,6 +7,15 @@ Kubernetes from a higher altitude.
 Flightdeck is a web-based interactive diagram UI for Kubernetes clusters. It allows users to observe and troubleshoot applications running in the cluster.
 
 ![Flightdeck UI](docs/images/flightdeck-ui.png)
+
+### Features
+
+* Search cluster resources
+* Resource dependencies graph
+* Pod logs, description, yaml
+* Container file browser
+* Login with service account token
+* Uses K8s RBAC
 
 ## Getting Started
 

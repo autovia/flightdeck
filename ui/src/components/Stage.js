@@ -32,7 +32,8 @@ class Stage extends Component {
         cluster: typeof props.params.cluster === "undefined" ? "" : props.params.cluster,
         resource: typeof props.params.resource === "undefined" ? "" : props.params.resource,
         type: this.isView("clusterresource") ? "clusterresource" : "resource"
-      }
+      },
+      clusterInfo: {}
     }
   }
 
@@ -56,12 +57,23 @@ class Stage extends Component {
         break;
       default:
         this.getGroup('/api/v1/resources/' + this.state.params.namespace + "/" + this.state.params.kind);
-    } 
+    }
+    this.getClusterInfo();
   }
 
   isView(name) {
     let path = window.location.pathname.split("/");
     return path.length > 1 && path[1] === name ? true : false;
+  }
+
+  getClusterInfo() {
+    fetch('/api/v1/cluster/info')
+    .then(res => res.json())
+    .then(d => {
+      this.setState((state, props) => ({
+        clusterInfo: d
+      }));
+    });
   }
 
   getGraph(url) {
@@ -163,7 +175,7 @@ class Stage extends Component {
 
   render() {
     return (
-      <div style={{ width: '100vw', height: '100vh' }}>
+      <div style={{ width: '100vw', height: '90vh' }}>
         <Nav params={this.state.params} onListClick={this.openListView} filter={this.state.search.filter} close={this.closeSearchView} onSearchClick={this.openSearchView} />
         {this.state.list.view 
         ? <ListView meta={this.state.list} close={this.closeListView} /> 
@@ -189,6 +201,7 @@ class Stage extends Component {
           <Background variant="dots" gap={12} size={1} />
         </ReactFlow>
       } {this.state.overlay.view ? <ResourceOverlay overlay={true} data={this.state.data} close={this.closeResourceOverlay} /> : ""}
+          <div className='text-sm px-4'>Cluster: {this.state.clusterInfo.gitVersion} connected</div>
       </div>
     );
   }

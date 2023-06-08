@@ -19,6 +19,7 @@ func InitRoutes(app *S.App) {
 	// App
 	app.Router.Handle("/api/v1/auth/reset", S.Authorization{app, auth.ResetTokenHandler})
 	app.Router.Handle("/api/v1/auth/status", S.Authorization{app, auth.StatusTokenHandler})
+	app.Router.Handle("/api/v1/cluster/info", S.KubeClient{app, k8s.ClusterVersion})
 
 	// Kubernetes
 

@@ -89,7 +89,12 @@ func (app *App) NewKubeClient(token string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{Clientset: clientset, Config: config}, nil
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{Clientset: clientset, Discovery: discoveryClient, Config: config}, nil
 }
 
 func (app *App) NewApiClient(token string) (*Client, error) {
