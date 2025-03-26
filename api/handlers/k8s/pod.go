@@ -43,8 +43,7 @@ func PodVolumeHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Re
 	}
 	for _, volume := range pod.Spec.Volumes {
 		if volume.Name == url.Subresource {
-			S.RespondFormat(r, w, http.StatusOK, volume)
-			break
+			return S.RespondFormat(r, w, http.StatusOK, volume)
 		}
 	}
 	return nil
@@ -172,7 +171,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 		selector := labels.Set(service.Spec.Selector).AsSelectorPreValidated()
 		if selector.Matches(labels.Set(pod.Labels)) {
 			svcnode := g.AddNode("svc", string(service.ObjectMeta.UID), service.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "service"})
-			g.AddEdge(podnode, svcnode)
+			g.AddEdge(podnode, svcnode, S.EdgeOptions{})
 		}
 	}
 
@@ -185,7 +184,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 		selector := labels.Set(netpol.Spec.PodSelector.MatchLabels).AsSelectorPreValidated()
 		if selector.Matches(labels.Set(pod.Labels)) {
 			netpolnode := g.AddNode("netpol", netpol.ObjectMeta.Name, netpol.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "netpol"})
-			g.AddEdge(podnode, netpolnode)
+			g.AddEdge(podnode, netpolnode, S.EdgeOptions{})
 		}
 	}
 
@@ -198,7 +197,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 				return S.RespondError(err)
 			}
 			replicasetnode := g.AddNode("rs", string(replicaset.ObjectMeta.UID), replicaset.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "rs"})
-			g.AddEdge(replicasetnode, podnode)
+			g.AddEdge(replicasetnode, podnode, S.EdgeOptions{})
 
 			for _, replOwnerRefs := range replicaset.ObjectMeta.OwnerReferences {
 				if replOwnerRefs.Kind == "Deployment" {
@@ -207,7 +206,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 						return S.RespondError(err)
 					}
 					repldeploynode := g.AddNode("deploy", string(replDeployment.ObjectMeta.UID), replDeployment.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "deploy"})
-					g.AddEdge(repldeploynode, replicasetnode)
+					g.AddEdge(repldeploynode, replicasetnode, S.EdgeOptions{})
 				}
 			}
 		}
@@ -217,7 +216,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 				return S.RespondError(err)
 			}
 			deploynode := g.AddNode("deploy", string(deployment.ObjectMeta.UID), deployment.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "deploy"})
-			g.AddEdge(deploynode, podnode)
+			g.AddEdge(deploynode, podnode, S.EdgeOptions{})
 		}
 		if podOwnerRefs.Kind == "StatefulSet" {
 			statefulset, err := c.Clientset.AppsV1().StatefulSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
@@ -225,7 +224,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 				return S.RespondError(err)
 			}
 			stsnode := g.AddNode("sts", string(statefulset.ObjectMeta.UID), statefulset.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "sts"})
-			g.AddEdge(stsnode, podnode)
+			g.AddEdge(stsnode, podnode, S.EdgeOptions{})
 		}
 		if podOwnerRefs.Kind == "DaemonSet" {
 			daemonset, err := c.Clientset.AppsV1().DaemonSets(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
@@ -233,7 +232,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 				return S.RespondError(err)
 			}
 			dsnode := g.AddNode("ds", string(daemonset.ObjectMeta.UID), daemonset.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "ds"})
-			g.AddEdge(dsnode, podnode)
+			g.AddEdge(dsnode, podnode, S.EdgeOptions{})
 		}
 		if podOwnerRefs.Kind == "Job" {
 			job, err := c.Clientset.BatchV1().Jobs(pod.Namespace).Get(context.Background(), podOwnerRefs.Name, metav1.GetOptions{})
@@ -241,7 +240,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 				return S.RespondError(err)
 			}
 			jobnode := g.AddNode("job", string(job.ObjectMeta.UID), job.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "job"})
-			g.AddEdge(jobnode, podnode)
+			g.AddEdge(jobnode, podnode, S.EdgeOptions{})
 
 			for _, jobOwnerRefs := range job.ObjectMeta.OwnerReferences {
 				if jobOwnerRefs.Kind == "CronJob" {
@@ -250,7 +249,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 						return S.RespondError(err)
 					}
 					cjnode := g.AddNode("cronjob", string(cronjob.ObjectMeta.UID), cronjob.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "cronjob"})
-					g.AddEdge(cjnode, jobnode)
+					g.AddEdge(cjnode, jobnode, S.EdgeOptions{})
 				}
 			}
 		}
@@ -263,12 +262,12 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 		case volume.Secret != nil:
 			if !g.Includes(volume.Secret.SecretName) {
 				secretnode := g.AddNode("secret", volume.Secret.SecretName, volume.Secret.SecretName, S.NodeOptions{Namespace: namespace, Type: "secret"})
-				g.AddEdge(secretnode, podnode)
+				g.AddEdge(secretnode, podnode, S.EdgeOptions{})
 			}
 		case volume.ConfigMap != nil:
 			if !g.Includes(volume.ConfigMap.Name) {
 				cmnode := g.AddNode("cm", volume.ConfigMap.Name, volume.ConfigMap.Name, S.NodeOptions{Namespace: namespace, Type: "cm"})
-				g.AddEdge(cmnode, podnode)
+				g.AddEdge(cmnode, podnode, S.EdgeOptions{})
 			}
 		case volume.PersistentVolumeClaim != nil:
 			if !g.Includes(volume.PersistentVolumeClaim.ClaimName) {
@@ -277,12 +276,12 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 					return S.RespondError(err)
 				}
 				volnode := g.AddNode("pv", pvc.Spec.VolumeName, pvc.Spec.VolumeName, S.NodeOptions{Namespace: namespace, Type: "pv"})
-				g.AddEdge(volnode, podnode)
+				g.AddEdge(volnode, podnode, S.EdgeOptions{})
 				pvcnode := g.AddNode("pvc", volume.PersistentVolumeClaim.ClaimName, volume.PersistentVolumeClaim.ClaimName, S.NodeOptions{Namespace: namespace, Type: "pvc"})
-				g.AddEdge(pvcnode, volnode)
+				g.AddEdge(pvcnode, volnode, S.EdgeOptions{})
 				if pvc.Spec.StorageClassName != nil {
 					scnode := g.AddNode("sc", *pvc.Spec.StorageClassName, *pvc.Spec.StorageClassName, S.NodeOptions{Type: "sc"})
-					g.AddEdge(scnode, pvcnode)
+					g.AddEdge(scnode, pvcnode, S.EdgeOptions{})
 				}
 			}
 		case volume.Projected != nil:
@@ -293,19 +292,19 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 				case source.Secret != nil:
 					if !g.Includes(source.Secret.Name) {
 						volsecretnode := g.AddNode("secret", source.Secret.Name, source.Secret.Name, S.NodeOptions{Namespace: namespace, Type: "secret"})
-						g.AddEdge(volsecretnode, podnode)
+						g.AddEdge(volsecretnode, podnode, S.EdgeOptions{})
 					}
 				case source.ConfigMap != nil:
 					if !g.Includes(source.ConfigMap.Name) {
 						volcmnode := g.AddNode("cm", source.ConfigMap.Name, source.ConfigMap.Name, S.NodeOptions{Namespace: namespace, Type: "cm"})
-						g.AddEdge(volcmnode, podnode)
+						g.AddEdge(volcmnode, podnode, S.EdgeOptions{})
 					}
 				}
 			}
 		default:
 			if !g.Includes(volume.Name) {
 				volnode := g.AddNode("vol", volume.Name, volume.Name, S.NodeOptions{Namespace: namespace, Type: "vol"})
-				g.AddEdge(volnode, podnode)
+				g.AddEdge(volnode, podnode, S.EdgeOptions{})
 			}
 		}
 	}
@@ -313,7 +312,7 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 	// serviceaccount
 	if pod.Spec.ServiceAccountName != "" {
 		sanode := g.AddNode("sa", pod.Spec.ServiceAccountName, pod.Spec.ServiceAccountName, S.NodeOptions{Namespace: namespace, Type: "sa"})
-		g.AddEdge(sanode, podnode)
+		g.AddEdge(sanode, podnode, S.EdgeOptions{})
 
 		rbList, err := c.Clientset.RbacV1().RoleBindings(pod.Namespace).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
@@ -323,10 +322,10 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 			for _, subject := range rb.Subjects {
 				if subject.Kind == "ServiceAccount" && subject.Name == pod.Spec.ServiceAccountName {
 					rbnode := g.AddNode("rb", rb.ObjectMeta.Name, rb.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "rb"})
-					g.AddEdge(rbnode, sanode)
+					g.AddEdge(rbnode, sanode, S.EdgeOptions{})
 
 					rolenode := g.AddNode("role", rb.RoleRef.Name, rb.RoleRef.Name, S.NodeOptions{Namespace: namespace, Type: "role"})
-					g.AddEdge(rolenode, rbnode)
+					g.AddEdge(rolenode, rbnode, S.EdgeOptions{})
 					break
 				}
 			}
@@ -340,10 +339,10 @@ func PodGraphHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Req
 			for _, subject := range crb.Subjects {
 				if subject.Kind == "ServiceAccount" && subject.Name == pod.Spec.ServiceAccountName {
 					crbnode := g.AddNode("crb", crb.ObjectMeta.Name, crb.ObjectMeta.Name, S.NodeOptions{Namespace: namespace, Type: "crb"})
-					g.AddEdge(crbnode, sanode)
+					g.AddEdge(crbnode, sanode, S.EdgeOptions{})
 
 					rolenode := g.AddNode("c-role", crb.RoleRef.Name, crb.RoleRef.Name, S.NodeOptions{Namespace: namespace, Type: "cr"})
-					g.AddEdge(rolenode, crbnode)
+					g.AddEdge(rolenode, crbnode, S.EdgeOptions{})
 					break
 				}
 			}

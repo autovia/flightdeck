@@ -47,7 +47,7 @@ func JobPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.R
 				if url.Resource == job.ObjectMeta.Name {
 					if !g.Includes(pod.ObjectMeta.Name) {
 						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-						g.AddEdge(jobnode, podnode)
+						g.AddEdge(jobnode, podnode, S.EdgeOptions{})
 					}
 				}
 			}

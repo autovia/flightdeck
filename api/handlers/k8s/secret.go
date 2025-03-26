@@ -43,7 +43,7 @@ func SecretPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *htt
 				if volume.Secret.SecretName == url.Resource {
 					if !g.Includes(pod.ObjectMeta.Name) {
 						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-						g.AddEdge(secnode, podnode)
+						g.AddEdge(secnode, podnode, S.EdgeOptions{})
 					}
 				}
 			}
@@ -53,7 +53,7 @@ func SecretPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *htt
 						if source.Secret.Name == url.Resource {
 							if !g.Includes(pod.ObjectMeta.Name) {
 								podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-								g.AddEdge(secnode, podnode)
+								g.AddEdge(secnode, podnode, S.EdgeOptions{})
 							}
 						}
 					}

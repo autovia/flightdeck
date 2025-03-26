@@ -49,4 +49,4 @@ go run . -fileserverpath=../web/build -fileserver=true -addr=0.0.0.0:8000
 [Apache License 2.0](https://github.com/autovia/flightdeck/blob/master/LICENSE)
 
 ----
-_Copyright 2023 [Autovia GmbH](https://autovia.io)_
+_Copyright [Autovia GmbH](https://autovia.de)_

@@ -49,7 +49,7 @@ func ReplicaSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r 
 				if url.Resource == statefulset.ObjectMeta.Name {
 					if !g.Includes(pod.ObjectMeta.Name) {
 						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-						g.AddEdge(rsnode, podnode)
+						g.AddEdge(rsnode, podnode, S.EdgeOptions{})
 					}
 				}
 			}

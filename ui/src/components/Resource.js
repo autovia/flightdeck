@@ -129,8 +129,13 @@ class Resource extends Component {
     }
   }
 
+  // showRef = (ref) => {
+  //   window.open("/resource/" + this.props.data.namespace + "/pod/" + ref, "_self");
+  // }
+
   showRef = (ref) => {
-    window.open("/resource/" + this.props.data.namespace + "/pod/" + ref, "_self");
+    ref.stopPropagation();
+    window.open("/resource/" + this.props.data.namespace + "/" + this.props.data.kind + "/" + ref, "_self");
   }
 
   onContainerChange = (e) => {

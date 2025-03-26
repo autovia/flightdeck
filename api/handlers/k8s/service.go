@@ -73,7 +73,7 @@ func ServicePodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *ht
 		selector := labels.Set(service.Spec.Selector).AsSelectorPreValidated()
 		if selector.Matches(labels.Set(pod.Labels)) {
 			podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-			g.AddEdge(svcnode, podnode)
+			g.AddEdge(svcnode, podnode, S.EdgeOptions{})
 		}
 	}
 	return S.RespondJSON(w, http.StatusOK, g)

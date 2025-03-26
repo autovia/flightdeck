@@ -23,8 +23,7 @@ func DaemonSetHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Re
 	}
 	ds.ObjectMeta.ManagedFields = nil
 
-	S.RespondFormat(r, w, http.StatusOK, ds)
-	return nil
+	return S.RespondFormat(r, w, http.StatusOK, ds)
 }
 
 func DaemonSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *http.Request) error {
@@ -50,7 +49,7 @@ func DaemonSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *
 				if url.Resource == daemonset.ObjectMeta.Name {
 					if !g.Includes(pod.ObjectMeta.Name) {
 						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-						g.AddEdge(dsnode, podnode)
+						g.AddEdge(dsnode, podnode, S.EdgeOptions{})
 					}
 				}
 			}

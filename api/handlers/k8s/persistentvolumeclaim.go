@@ -43,7 +43,7 @@ func PersistentVolumeClaimPodListHandler(app *S.App, c *S.Client, w http.Respons
 				if volume.PersistentVolumeClaim.ClaimName == url.Resource {
 					if !g.Includes(pod.ObjectMeta.Name) {
 						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-						g.AddEdge(pvcnode, podnode)
+						g.AddEdge(pvcnode, podnode, S.EdgeOptions{})
 					}
 				}
 			}

@@ -54,7 +54,7 @@ func CronJobPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *ht
 						if url.Resource == cronjob.ObjectMeta.Name {
 							if !g.Includes(pod.ObjectMeta.Name) {
 								podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-								g.AddEdge(cjnode, podnode)
+								g.AddEdge(cjnode, podnode, S.EdgeOptions{})
 							}
 						}
 					}

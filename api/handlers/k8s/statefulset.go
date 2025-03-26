@@ -49,7 +49,7 @@ func StatefulSetPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r
 				if url.Resource == statefulset.ObjectMeta.Name {
 					if !g.Includes(pod.ObjectMeta.Name) {
 						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-						g.AddEdge(stsnode, podnode)
+						g.AddEdge(stsnode, podnode, S.EdgeOptions{})
 					}
 				}
 			}

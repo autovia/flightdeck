@@ -43,7 +43,7 @@ func ConfigMapPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *
 				if volume.ConfigMap.Name == url.Resource {
 					if !g.Includes(pod.ObjectMeta.Name) {
 						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-						g.AddEdge(cmnode, podnode)
+						g.AddEdge(cmnode, podnode, S.EdgeOptions{})
 					}
 				}
 			}
@@ -53,7 +53,7 @@ func ConfigMapPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r *
 						if source.ConfigMap.Name == url.Resource {
 							if !g.Includes(pod.ObjectMeta.Name) {
 								podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-								g.AddEdge(cmnode, podnode)
+								g.AddEdge(cmnode, podnode, S.EdgeOptions{})
 							}
 						}
 					}

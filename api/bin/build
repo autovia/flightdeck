@@ -1,5 +1,5 @@
 #!/bin/bash
 
 # Linux amd64
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build $@ -ldflags "-X \"autovia.io/flightdeck/flags.Version=$(git describe --always)\"" \
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build $@ -ldflags "-X \"autovia.de/flightdeck/flags.Version=$(git describe --always)\"" \
                -o ./api/bin/flightdeck.linux.amd64 .

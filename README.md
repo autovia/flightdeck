@@ -64,4 +64,4 @@ kubectl delete namespace flightdeck
 [Apache License 2.0](https://github.com/autovia/flightdeck/blob/master/LICENSE)
 
 ----
-_Copyright [Autovia GmbH](https://autovia.io)_
+_Copyright [Autovia GmbH](https://autovia.de)_

@@ -53,7 +53,7 @@ func DeploymentPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r 
 						if url.Resource == replDeployment.ObjectMeta.Name {
 							if !g.Includes(pod.ObjectMeta.Name) {
 								podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-								g.AddEdge(deploynode, podnode)
+								g.AddEdge(deploynode, podnode, S.EdgeOptions{})
 							}
 						}
 					}
@@ -67,7 +67,7 @@ func DeploymentPodListHandler(app *S.App, c *S.Client, w http.ResponseWriter, r 
 				if url.Resource == deploy.ObjectMeta.Name {
 					if !g.Includes(pod.ObjectMeta.Name) {
 						podnode := g.AddNode("pod", string(pod.ObjectMeta.UID), pod.ObjectMeta.Name, S.NodeOptions{Namespace: url.Scope, Type: "pod"})
-						g.AddEdge(deploynode, podnode)
+						g.AddEdge(deploynode, podnode, S.EdgeOptions{})
 					}
 				}
 			}

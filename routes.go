@@ -129,6 +129,7 @@ func InitRoutes(app *S.App) {
 
 	// 	NetworkPoliciesGetter
 	app.Router.Handle("/api/v1/netpol/", S.KubeClient{app, k8s.NetworkPolicyHandler})
+	app.Router.Handle("/api/v1/graph/netpol/", S.KubeClient{app, k8s.NetworkPolicyGraphHandler})
 	app.Router.Handle("/api/v1/namespace/netpol/", S.KubeClient{app, k8s.NamespaceNetworkPolicyListHandler})
 
 	// type BatchV1Interface interface
